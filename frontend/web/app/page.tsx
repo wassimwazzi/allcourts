@@ -11,7 +11,7 @@ import { SectionHeader } from "@/components/section-header";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getDiscoverData } from "@/lib/discovery-data";
-import { formatCurrency, getBaseUrl } from "@/lib/env";
+import { formatCurrency } from "@/lib/env";
 
 export default async function HomePage() {
   const discoverData = await getDiscoverData();
@@ -147,7 +147,6 @@ export default async function HomePage() {
               <strong>{formatCurrency(36)}</strong>
               <p>Includes court fee, instant confirmation, and host contact details.</p>
             </div>
-            <p className="subtle-note">Base app URL: {getBaseUrl()}</p>
           </aside>
         </section>
 
