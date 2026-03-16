@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "AllCourts",
+    "slug": "allcourts-mobile",
+    "scheme": "allcourts",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.allcourts.mobile"
+    },
+    "android": {
+      "package": "com.allcourts.mobile"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
