@@ -5,7 +5,7 @@ import { formatCurrency } from "@/lib/env";
 
 type PaymentFormProps = {
   court: CheckoutCourt;
-  slot: CheckoutSlot;
+  slots: CheckoutSlot[];
   name: string;
   cardNumber: string;
   expiry: string;
@@ -30,14 +30,21 @@ function formatExpiry(raw: string): string {
 }
 
 export function PaymentForm({
-  court, slot, name, cardNumber, expiry, cvv,
+  court, slots, name, cardNumber, expiry, cvv,
   onCardNumberChange, onExpiryChange, onCvvChange,
   onBack, onSubmit, loading, error,
 }: PaymentFormProps) {
-  const price = formatCurrency(slot.priceCents / 100);
-  const dateLabel = new Date(slot.date + "T00:00:00").toLocaleDateString("en-US", {
+  const sorted = [...slots].sort((a, b) => a.startTime.localeCompare(b.startTime));
+  const first = sorted[0]!;
+  const last = sorted[sorted.length - 1]!;
+  const totalCents = slots.reduce((sum, s) => sum + s.priceCents, 0);
+  const totalFormatted = formatCurrency(totalCents / 100);
+  const dateLabel = new Date(first.date + "T00:00:00").toLocaleDateString("en-US", {
     weekday: "short", month: "short", day: "numeric",
   });
+  const timeRange = slots.length === 1
+    ? first.label
+    : `${first.startTime} – ${last.endTime}`;
 
   return (
     <div className="checkout-step">
@@ -51,8 +58,14 @@ export function PaymentForm({
         </div>
         <div className="checkout-summary-row">
           <span>{dateLabel}</span>
-          <span>{slot.label}</span>
+          <span>{timeRange}</span>
         </div>
+        {slots.length > 1 && (
+          <div className="checkout-summary-row">
+            <span>{slots.length} slots</span>
+            <span>{slots.map(s => formatCurrency(s.priceCents / 100)).join(" + ")}</span>
+          </div>
+        )}
         <div className="checkout-summary-row">
           <span>Booked for</span>
           <span>{name}</span>
@@ -60,7 +73,7 @@ export function PaymentForm({
         <div className="checkout-summary-divider" />
         <div className="checkout-summary-row checkout-summary-total">
           <span>Total</span>
-          <strong>{price}</strong>
+          <strong>{totalFormatted}</strong>
         </div>
       </div>
 
@@ -133,7 +146,7 @@ export function PaymentForm({
           onClick={onSubmit}
           disabled={loading}
         >
-          {loading ? "Confirming…" : `Confirm Booking · ${price}`}
+          {loading ? "Confirming…" : `Confirm Booking · ${totalFormatted}`}
         </button>
       </div>
     </div>

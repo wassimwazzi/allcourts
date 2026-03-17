@@ -37,10 +37,10 @@
   --primary-foreground: 222.2 47.4% 11.2%;
   --secondary: 217.2 32.6% 17.5%;
   --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
+  --tw-muted: 217.2 32.6% 17.5%;
   --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
+  --tw-accent: 217.2 32.6% 17.5%;
+  --tw-accent-foreground: 210 40% 98%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 210 40% 98%;
   --border: 217.2 32.6% 17.5%;
@@ -292,6 +292,19 @@ h3 {
 .button-primary {
   background: linear-gradient(135deg, var(--accent) 0%, #74a8ff 100%);
   color: #06101d;
+  font-weight: 800;
+  box-shadow: 0 0 0 1px rgba(102, 240, 194, 0.3), 0 4px 16px rgba(102, 240, 194, 0.25);
+  transition: box-shadow 0.2s, opacity 0.2s;
+}
+
+.button-primary:hover:not(:disabled) {
+  box-shadow: 0 0 0 1px rgba(102, 240, 194, 0.5), 0 6px 24px rgba(102, 240, 194, 0.35);
+}
+
+.button-primary:disabled {
+  opacity: 0.35;
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
 .button-secondary {
@@ -2171,4 +2184,39 @@ h3 {
   font-weight: 400;
   font-size: 0.75rem;
   margin-left: 0.25rem;
+}
+
+/* ============================================================
+   SLOT SELECTION SUMMARY BAR
+   ============================================================ */
+
+.slot-selection-summary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--accent-soft);
+  border: 1px solid rgba(102, 240, 194, 0.3);
+  border-radius: 10px;
+  padding: 0.75rem 1.1rem;
+  margin-top: 1rem;
+}
+
+.slot-summary-count {
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.slot-summary-range {
+  color: var(--muted-strong);
+  font-size: 0.85rem;
+  flex: 1;
+}
+
+.slot-summary-total {
+  font-weight: 800;
+  color: var(--text);
+  margin-left: auto;
+  white-space: nowrap;
 }

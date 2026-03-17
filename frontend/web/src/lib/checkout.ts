@@ -168,11 +168,6 @@ export type BookingResult =
   | { ok: false; error: string };
 
 export async function submitBooking(params: BookingSubmitParams): Promise<BookingResult> {
-  const config = getPublicSupabaseEnv();
-  if (!config) {
-    return { ok: false, error: "Supabase is not configured on this deployment." };
-  }
-
   const accessToken = await getOrCreateAnonSession();
   if (!accessToken) {
     return { ok: false, error: "Could not establish a session. Please try again." };
@@ -196,7 +191,7 @@ export async function submitBooking(params: BookingSubmitParams): Promise<Bookin
   };
 
   try {
-    const res = await fetch(`${config.supabaseUrl}/functions/v1/booking-checkout`, {
+    const res = await fetch("/api/checkout", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

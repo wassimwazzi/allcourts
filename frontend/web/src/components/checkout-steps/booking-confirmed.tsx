@@ -6,16 +6,23 @@ import { formatCurrency } from "@/lib/env";
 
 type BookingConfirmedProps = {
   court: CheckoutCourt;
-  slot: CheckoutSlot;
+  slots: CheckoutSlot[];
   bookingId: string;
   name: string;
 };
 
-export function BookingConfirmed({ court, slot, bookingId, name }: BookingConfirmedProps) {
-  const price = formatCurrency(slot.priceCents / 100);
-  const dateLabel = new Date(slot.date + "T00:00:00").toLocaleDateString("en-US", {
+export function BookingConfirmed({ court, slots, bookingId, name }: BookingConfirmedProps) {
+  const sorted = [...slots].sort((a, b) => a.startTime.localeCompare(b.startTime));
+  const first = sorted[0]!;
+  const last = sorted[sorted.length - 1]!;
+  const totalCents = slots.reduce((sum, s) => sum + s.priceCents, 0);
+  const totalFormatted = formatCurrency(totalCents / 100);
+  const dateLabel = new Date(first.date + "T00:00:00").toLocaleDateString("en-US", {
     weekday: "long", month: "long", day: "numeric",
   });
+  const timeRange = slots.length === 1
+    ? first.label
+    : `${first.startTime} – ${last.endTime}`;
   const shortRef = bookingId.slice(0, 8).toUpperCase();
 
   return (
@@ -42,8 +49,14 @@ export function BookingConfirmed({ court, slot, bookingId, name }: BookingConfir
         </div>
         <div className="checkout-summary-row">
           <span>Time</span>
-          <span>{slot.label}</span>
+          <span>{timeRange}</span>
         </div>
+        {slots.length > 1 && (
+          <div className="checkout-summary-row">
+            <span>Duration</span>
+            <span>{slots.length} slots</span>
+          </div>
+        )}
         <div className="checkout-summary-row">
           <span>Booked for</span>
           <span>{name}</span>
@@ -51,7 +64,7 @@ export function BookingConfirmed({ court, slot, bookingId, name }: BookingConfir
         <div className="checkout-summary-divider" />
         <div className="checkout-summary-row checkout-summary-total">
           <span>Total</span>
-          <strong>{price}</strong>
+          <strong>{totalFormatted}</strong>
         </div>
       </div>
 

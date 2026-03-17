@@ -24,7 +24,7 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
 
   const [step, setStep] = useState<CheckoutStep>("slot");
   const [selectedDate, setSelectedDate] = useState(firstDate);
-  const [selectedSlot, setSelectedSlot] = useState<CheckoutSlot | null>(null);
+  const [selectedSlots, setSelectedSlots] = useState<CheckoutSlot[]>([]);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
@@ -39,18 +39,32 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
 
   const currentStepIndex = STEPS.findIndex((s) => s.id === step);
 
+  function handleSlotToggle(slot: CheckoutSlot) {
+    setSelectedSlots((prev) => {
+      const exists = prev.some((s) => s.date === slot.date && s.startTime === slot.startTime);
+      return exists
+        ? prev.filter((s) => !(s.date === slot.date && s.startTime === slot.startTime))
+        : [...prev, slot];
+    });
+  }
+
   async function handleSubmit() {
-    if (!selectedSlot) return;
+    if (selectedSlots.length === 0) return;
     setLoading(true);
     setError(null);
 
+    const sorted = [...selectedSlots].sort((a, b) => a.startTime.localeCompare(b.startTime));
+    const first = sorted[0]!;
+    const last = sorted[sorted.length - 1]!;
+    const subtotalCents = sorted.reduce((sum, s) => sum + s.priceCents, 0);
+
     const result = await submitBooking({
       courtId: court.courtId,
-      bookingDate: selectedSlot.date,
-      startTime: selectedSlot.startTime,
-      endTime: selectedSlot.endTime,
-      subtotalCents: selectedSlot.priceCents,
-      currency: selectedSlot.currency,
+      bookingDate: first.date,
+      startTime: first.startTime,
+      endTime: last.endTime,
+      subtotalCents,
+      currency: first.currency,
       bookedForName: name,
       bookedForPhone: phone,
       notes,
@@ -95,9 +109,9 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
           <SlotPicker
             court={court}
             selectedDate={selectedDate}
-            selectedSlot={selectedSlot}
-            onDateChange={(d) => { setSelectedDate(d); setSelectedSlot(null); }}
-            onSlotSelect={setSelectedSlot}
+            selectedSlots={selectedSlots}
+            onDateChange={(d) => { setSelectedDate(d); setSelectedSlots([]); }}
+            onSlotToggle={handleSlotToggle}
             onNext={() => setStep("details")}
           />
         )}
@@ -113,10 +127,10 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
             onNext={() => setStep("payment")}
           />
         )}
-        {step === "payment" && selectedSlot && (
+        {step === "payment" && selectedSlots.length > 0 && (
           <PaymentForm
             court={court}
-            slot={selectedSlot}
+            slots={selectedSlots}
             name={name}
             cardNumber={cardNumber}
             expiry={expiry}
@@ -130,10 +144,10 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
             error={error}
           />
         )}
-        {step === "confirmed" && selectedSlot && (
+        {step === "confirmed" && selectedSlots.length > 0 && (
           <BookingConfirmed
             court={court}
-            slot={selectedSlot}
+            slots={selectedSlots}
             bookingId={bookingId}
             name={name}
           />
