@@ -12,6 +12,7 @@
     "typecheck": "tsc -p tsconfig.json --pretty false"
   },
   "dependencies": {
+    "@expo/metro-runtime": "^55.0.6",
     "expo": "~51.0.28",
     "expo-router": "~3.5.23",
     "expo-status-bar": "~1.12.1",
@@ -19,7 +20,7 @@
     "react-native": "0.74.5"
   },
   "devDependencies": {
-    "@types/react": "18.3.3",
-    "typescript": "5.6.3"
+    "@types/react": "18.2.79",
+    "typescript": "5.3.3"
   }
 }

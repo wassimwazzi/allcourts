@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import type { Route } from "next";
 import { formatCurrency } from "@/lib/env";
 import type { DiscoverCourtCard } from "@/lib/discovery-data";
 
@@ -9,71 +12,33 @@ type FacilityCardProps = {
 };
 
 export function FacilityCard({ facility, compact = false }: FacilityCardProps) {
+  const bookingHref = (compact ? "/checkout" : `/checkout/${facility.id}`) as Route;
+
   return (
-    <article className="surface facility-card">
-      <div className="facility-image-wrap">
+    <article className="facility-card">
+      <div className="facility-card-image">
         <Image
-          className="facility-image"
           src={facility.imageUrl}
-          alt={`${facility.name} court view`}
-          width={900}
-          height={520}
+          alt={`${facility.name}`}
+          width={600}
+          height={360}
+          className="facility-card-img"
         />
+        <span className="facility-card-sport-badge">{facility.sport}</span>
       </div>
 
-      <div className="facility-card-top">
-        <div>
-          <p className="panel-kicker">{facility.sport}</p>
-          <h3>{facility.name}</h3>
-        </div>
-        <span className="inline-chip inline-chip-accent">{facility.availability}</span>
-      </div>
+      <div className="facility-card-body">
+        <h3 className="facility-card-name">{facility.name}</h3>
+        <p className="facility-card-location">{facility.location}</p>
 
-      <p className="facility-location">{facility.location}</p>
-      <p className="facility-description">{facility.description}</p>
-
-      <dl className="facility-meta" aria-label={`${facility.name} details`}>
-        <div>
-          <dt>From</dt>
-          <dd>{formatCurrency(facility.priceFrom)}</dd>
-        </div>
-        <div>
-          <dt>Address</dt>
-          <dd>{facility.travelTime}</dd>
-        </div>
-        <div>
-          <dt>Guests</dt>
-          <dd>{facility.capacity}</dd>
-        </div>
-      </dl>
-
-      <div className="chip-row" aria-label={`${facility.name} amenities`}>
-        {facility.amenities.map((amenity) => (
-          <span className="inline-chip" key={amenity}>
-            {amenity}
+        <div className="facility-card-footer">
+          <span className="facility-card-price">
+            From {formatCurrency(facility.priceFrom)}
           </span>
-        ))}
-      </div>
-
-      <div className="slot-row" aria-label={`${facility.name} next slots`}>
-        {facility.nextSlots.length > 0 ? (
-          facility.nextSlots.map((slot) => (
-            <span className="slot-chip" key={slot}>
-              {slot}
-            </span>
-          ))
-        ) : (
-          <span className="slot-chip">See full schedule</span>
-        )}
-      </div>
-
-      <div className="facility-actions">
-        <Link className="button button-secondary" href="/discover">
-          Compare options
-        </Link>
-        <Link className="button button-primary" href={compact ? "/checkout" : "/discover"}>
-          {compact ? "Review checkout" : "See availability"}
-        </Link>
+          <Link className="button button-primary" href={bookingHref}>
+            Book Now
+          </Link>
+        </div>
       </div>
     </article>
   );

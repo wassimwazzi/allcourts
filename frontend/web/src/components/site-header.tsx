@@ -2,9 +2,9 @@ import type { Route } from "next";
 import Link from "next/link";
 
 const navItems: Array<{ href: Route; label: string }> = [
+  { href: "/", label: "Home" },
   { href: "/discover", label: "Discover" },
-  { href: "/checkout", label: "Checkout" },
-  { href: "/admin", label: "Facility shell" }
+  { href: "/#pricing", label: "Pricing" },
 ];
 
 export function SiteHeader() {

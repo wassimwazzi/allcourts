@@ -2,9 +2,56 @@
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
-import { FacilityCard } from "@/components/facility-card";
+import { AISearch } from "@/components/ai-search";
+import { CourtFilters } from "@/components/court-filters";
 import { DiscoverMap } from "@/components/discover-map";
+import { CourtCard } from "@/components/court-card";
 import type { DiscoverCourtCard } from "@/lib/discovery-data";
+
+type View = "list" | "map";
+
+function applyQueryFilter(courts: DiscoverCourtCard[], query: string): DiscoverCourtCard[] {
+  const q = query.toLowerCase().trim();
+  if (!q) return courts;
+
+  const sportMap: [string, string[]][] = [
+    ["Tennis", ["tennis"]],
+    ["Padel", ["padel"]],
+    ["Pickleball", ["pickleball", "pickle ball"]],
+    ["Squash", ["squash"]],
+    ["Badminton", ["badminton"]],
+  ];
+
+  return courts.filter((court) => {
+    const mentionedSport = sportMap.find(([, keywords]) =>
+      keywords.some((kw) => q.includes(kw))
+    );
+    if (mentionedSport && court.sport.toLowerCase() !== mentionedSport[0].toLowerCase()) {
+      return false;
+    }
+
+    if (
+      (q.includes("cheap") || q.includes("budget") || q.includes("affordable")) &&
+      court.priceFrom >= 30
+    ) return false;
+
+    if (
+      (q.includes("premium") || q.includes("luxury") || q.includes("expensive")) &&
+      court.priceFrom < 50
+    ) return false;
+
+    if (!mentionedSport) {
+      const stopWords = new Set(["court", "facility", "booking", "near", "with", "this", "that", "want", "find", "show", "the", "and", "for"]);
+      const words = q.split(/\s+/).filter((w) => w.length > 3 && !stopWords.has(w));
+      if (words.length > 0) {
+        const searchable = `${court.name} ${court.location} ${court.sport}`.toLowerCase();
+        if (!words.some((w) => searchable.includes(w))) return false;
+      }
+    }
+
+    return true;
+  });
+}
 
 type DiscoverExperienceProps = {
   courts: DiscoverCourtCard[];
@@ -12,12 +59,40 @@ type DiscoverExperienceProps = {
 };
 
 export function DiscoverExperience({ courts, errorMessage }: DiscoverExperienceProps) {
+  const [view, setView] = useState<View>("list");
   const [selectedCourtId, setSelectedCourtId] = useState<string | null>(courts[0]?.id ?? null);
+  const [query, setQuery] = useState("");
+  const [activeQuery, setActiveQuery] = useState("");
+  const [sport, setSport] = useState("");
+  const [location, setLocation] = useState("");
+  const [priceRange, setPriceRange] = useState("");
+
+  const sports = useMemo(
+    () => Array.from(new Set(courts.map((c) => c.sport))).sort(),
+    [courts]
+  );
+  const locations = useMemo(
+    () => Array.from(new Set(courts.map((c) => c.location).filter(Boolean))).sort(),
+    [courts]
+  );
+
+  const displayCourts = useMemo(() => {
+    let result = activeQuery ? applyQueryFilter(courts, activeQuery) : courts;
+    if (sport) result = result.filter((c) => c.sport.toLowerCase() === sport.toLowerCase());
+    if (location) result = result.filter((c) => c.location.toLowerCase().includes(location.toLowerCase()));
+    if (priceRange === "budget") result = result.filter((c) => c.priceFrom < 30);
+    else if (priceRange === "mid") result = result.filter((c) => c.priceFrom >= 30 && c.priceFrom <= 50);
+    else if (priceRange === "premium") result = result.filter((c) => c.priceFrom > 50);
+    return result;
+  }, [courts, activeQuery, sport, location, priceRange]);
 
   const selectedCourt = useMemo(
-    () => courts.find((court) => court.id === selectedCourtId) ?? courts[0] ?? null,
-    [courts, selectedCourtId]
+    () => displayCourts.find((c) => c.id === selectedCourtId) ?? displayCourts[0] ?? null,
+    [displayCourts, selectedCourtId]
   );
+
+  const handleSubmit = () => setActiveQuery(query);
+  const handleClear = () => { setQuery(""); setActiveQuery(""); };
 
   if (courts.length === 0) {
     return (
@@ -30,44 +105,90 @@ export function DiscoverExperience({ courts, errorMessage }: DiscoverExperienceP
   }
 
   return (
-    <section className="discover-layout" aria-labelledby="discover-results-title">
-      <div className="results-column">
-        <div className="section-inline-header">
-          <div>
-            <p className="panel-kicker">Results</p>
-            <h2 id="discover-results-title">{courts.length} courts matching today’s availability</h2>
-          </div>
-          <span className="inline-chip inline-chip-accent">Live Supabase feed</span>
-        </div>
-        <div className="results-stack">
-          {courts.map((facility) => (
-            <FacilityCard facility={facility} key={facility.id} compact />
-          ))}
+    <div className="discover-shell">
+      {/* Search + Filters */}
+      <section className="discover-search-section" aria-label="Search and filter courts">
+        <AISearch
+          value={query}
+          onChange={setQuery}
+          onSubmit={handleSubmit}
+          onClear={handleClear}
+        />
+        <CourtFilters
+          sports={sports}
+          locations={locations}
+          sport={sport}
+          location={location}
+          priceRange={priceRange}
+          onSportChange={setSport}
+          onLocationChange={setLocation}
+          onPriceChange={setPriceRange}
+        />
+      </section>
+
+      {/* Results header */}
+      <div className="discover-results-header">
+        <p className="discover-count">
+          <strong>{displayCourts.length}</strong>{" "}
+          {displayCourts.length === 1 ? "court" : "courts"} available
+        </p>
+        <div className="view-toggle" role="group" aria-label="Switch view">
+          <button
+            type="button"
+            className={`view-toggle-btn${view === "list" ? " view-toggle-active" : ""}`}
+            onClick={() => setView("list")}
+            aria-pressed={view === "list"}
+          >
+            ≡ List
+          </button>
+          <button
+            type="button"
+            className={`view-toggle-btn${view === "map" ? " view-toggle-active" : ""}`}
+            onClick={() => setView("map")}
+            aria-pressed={view === "map"}
+          >
+            ⊙ Map
+          </button>
         </div>
       </div>
 
-      <aside className="surface insights-rail" aria-label="Discover map and court details">
-        <div className="section-inline-header">
-          <div>
-            <p className="panel-kicker">Map availability</p>
-            <h2>Inspect courts by location</h2>
+      {/* List or Map */}
+      {view === "list" ? (
+        displayCourts.length > 0 ? (
+          <div className="courts-grid">
+            {displayCourts.map((court) => (
+              <CourtCard court={court} key={court.id} />
+            ))}
           </div>
-          <span className="inline-chip">Tap marker to inspect</span>
+        ) : (
+          <div className="surface empty-state">
+            <h3>No Courts Found</h3>
+            <p>Try adjusting your search or clearing some filters.</p>
+          </div>
+        )
+      ) : (
+        <div className="discover-map-full surface">
+          <DiscoverMap
+            courts={displayCourts}
+            selectedCourtId={selectedCourt?.id ?? null}
+            onSelectCourt={setSelectedCourtId}
+          />
+          {selectedCourt && (
+            <article className="map-detail-card" aria-live="polite">
+              <Image
+                src={selectedCourt.imageUrl}
+                alt={`${selectedCourt.name} preview`}
+                width={600}
+                height={360}
+              />
+              <div>
+                <h3>{selectedCourt.name}</h3>
+                <p className="facility-card-location">{selectedCourt.location}</p>
+              </div>
+            </article>
+          )}
         </div>
-
-        <DiscoverMap courts={courts} selectedCourtId={selectedCourt?.id ?? null} onSelectCourt={setSelectedCourtId} />
-
-        {selectedCourt ? (
-          <article className="map-detail-card" aria-live="polite">
-            <Image src={selectedCourt.imageUrl} alt={`${selectedCourt.name} preview`} width={900} height={520} />
-            <div>
-              <h3>{selectedCourt.name}</h3>
-              <p>{selectedCourt.description}</p>
-              <p className="facility-location">{selectedCourt.location}</p>
-            </div>
-          </article>
-        ) : null}
-      </aside>
-    </section>
+      )}
+    </div>
   );
 }
