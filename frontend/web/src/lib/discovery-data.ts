@@ -9,6 +9,7 @@ type FacilityRecord = {
   address_line1: string | null;
   latitude: number | string | null;
   longitude: number | string | null;
+  rating: number | null;
   settings: Record<string, unknown> | null;
 };
 
@@ -22,6 +23,7 @@ type CourtRecord = {
   capacity: number;
   base_price_cents: number;
   currency: string;
+  image_url: string | null;
   metadata: Record<string, unknown> | null;
 };
 
@@ -50,6 +52,7 @@ export type DiscoverCourtCard = {
   amenities: string[];
   nextSlots: string[];
   imageUrl: string;
+  rating: number | null;
   coordinate: {
     latitude: number;
     longitude: number;
@@ -64,11 +67,15 @@ export type DiscoverDataResult = {
 
 const sportImages: Record<string, string> = {
   tennis:
-    "https://images.unsplash.com/photo-1542144582-1ba00456b5e3?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1560012057-4372e14c5085?auto=format&fit=crop&w=900&q=80",
   padel:
-    "https://images.unsplash.com/photo-1622279457486-62dcc4a43110?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1595434091143-b375ced5fe5c?auto=format&fit=crop&w=900&q=80",
   pickleball:
-    "https://images.unsplash.com/photo-1653400883961-0e6e15f598fd?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1593766788306-28561086694e?auto=format&fit=crop&w=900&q=80",
+  squash:
+    "https://images.unsplash.com/photo-1547347298-4074fc3086f0?auto=format&fit=crop&w=900&q=80",
+  badminton:
+    "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=900&q=80",
   futsal:
     "https://images.unsplash.com/photo-1570498839593-e565b39455fc?auto=format&fit=crop&w=900&q=80"
 };
@@ -157,14 +164,11 @@ function getAmenityLabels(metadata: Record<string, unknown> | null, indoor: bool
 }
 
 function getImageUrl(court: CourtRecord, facility: FacilityRecord): string {
-  const metadataImage =
-    (court.metadata?.image_url as string | undefined) ?? (court.metadata?.imageUrl as string | undefined);
-
   const settingsImage =
     (facility.settings?.listing_image_url as string | undefined) ??
     (facility.settings?.listingImageUrl as string | undefined);
 
-  return metadataImage ?? settingsImage ?? sportImages[court.sport_type] ?? defaultImage;
+  return court.image_url ?? settingsImage ?? sportImages[court.sport_type] ?? defaultImage;
 }
 
 function toDiscoverCard(
@@ -209,6 +213,7 @@ function toDiscoverCard(
     amenities: getAmenityLabels(court.metadata, court.indoor),
     nextSlots: slots.map((slot) => formatTimeSlot(slot.start_time)),
     imageUrl: getImageUrl(court, facility),
+    rating: facility.rating ?? null,
     coordinate: validCoordinate
   };
 }
@@ -231,10 +236,10 @@ export async function getDiscoverData(): Promise<DiscoverDataResult> {
   try {
     const [facilities, courts, availability] = await Promise.all([
       fetchSupabaseRest<FacilityRecord[]>(
-        "facilities?select=id,name,description,city,state_region,address_line1,latitude,longitude,settings&status=eq.active&order=name"
+        "facilities?select=id,name,description,city,state_region,address_line1,latitude,longitude,rating,settings&status=eq.active&order=name"
       ),
       fetchSupabaseRest<CourtRecord[]>(
-        "courts?select=id,facility_id,name,sport_type,surface_type,indoor,capacity,base_price_cents,currency,metadata&status=eq.active&order=display_order"
+        "courts?select=id,facility_id,name,sport_type,surface_type,indoor,capacity,base_price_cents,currency,image_url,metadata&status=eq.active&order=display_order"
       ),
       fetchSupabaseRest<AvailabilityRecord[]>(
         "court_availability?select=court_id,day_of_week,start_time,end_time,slot_minutes,price_cents,currency,availability_type,is_bookable&is_bookable=is.true"

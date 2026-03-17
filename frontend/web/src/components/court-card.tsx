@@ -24,8 +24,7 @@ export function CourtCard({ court, compact = false }: CourtCardProps) {
   // Check if indoor from amenities
   const isIndoor = court.amenities.some(a => a.toLowerCase().includes("indoor"));
   
-  // Rating placeholder (not in current data structure)
-  const rating = 4.8;
+  const rating = court.rating;
 
   return (
     <Card className="w-full max-w-sm overflow-hidden border-border bg-background shadow-lg hover:shadow-xl transition-all duration-300 group">
@@ -52,10 +51,12 @@ export function CourtCard({ court, compact = false }: CourtCardProps) {
           </div>
           
           <div className="absolute top-3 right-3">
-            <div className="bg-lime-100 text-lime-800 px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm flex items-center gap-1">
-              <span className="text-yellow-500">★</span>
-              {rating}
-            </div>
+            {rating !== null && (
+              <div className="bg-lime-100 text-lime-800 px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm flex items-center gap-1">
+                <span className="text-yellow-500">★</span>
+                {rating.toFixed(1)}
+              </div>
+            )}
           </div>
           
           <div className="absolute bottom-3 left-3 right-3">

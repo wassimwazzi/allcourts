@@ -20,6 +20,14 @@ This file is the repository-wide default for coding agents.
 - `backend/functions`: Supabase Edge Functions for privileged flows and webhook handling.
 - `packages/types`, `packages/validation`, `packages/sdk`, `packages/ui-web`, `packages/config`: shared contracts and foundations.
 
+## Git workflow
+After every completed feature or task:
+1. Create a `feature/<kebab-name>` branch off `main` if not already on one.
+2. Commit all changes with a descriptive message following conventional commits (`feat:`, `fix:`, `chore:`, etc.) and always include the Co-authored-by trailer.
+3. Push the branch: `git push origin feature/<kebab-name>`.
+4. Open a PR against `main` using `gh pr create --base main --title "..." --body "..."`. If `gh` is not authenticated, output the GitHub compare URL instead: `https://github.com/wassimwazzi/allcourts/compare/main...<branch-name>`.
+5. Never push directly to `main`.
+
 ## Setup commands
 - `pnpm install`
 - `pnpm dev:web`
@@ -51,7 +59,7 @@ Use only scripts that already exist. If a package does not expose a script for t
 - For mobile changes, run the existing Expo command used by that app for a smoke check.
 - For backend changes, review schema, function behavior, and any idempotency or auth edge cases touched by the change.
 - For docs-only changes, verify file presence, internal consistency, and that the guidance matches the current repo layout.
-- **For UI/component changes: Always use playwright-cli to visually inspect new components and pages.** Open the page at `http://localhost:3000`, take screenshots, and verify the design looks correct before completing the task.
+- **For UI/component changes: Always use playwright-cli to visually inspect new components and pages.** Open the page at `http://localhost:3000`, take screenshots, and verify the design looks correct before completing the task. **Always delete screenshot files with `rm` immediately after validation** — never commit or leave screenshots in the repo.
 
 ## Security and safety
 - Never trust client-supplied pricing, availability, or authorization decisions.
