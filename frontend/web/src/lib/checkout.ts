@@ -1,5 +1,5 @@
 import { getPublicSupabaseEnv } from "@/lib/env";
-import { getOrCreateAnonSession } from "@/lib/supabase-client";
+import { getAuthenticatedSession } from "@/lib/supabase-client";
 import type { CheckoutCourt, CheckoutSlot } from "@allcourts/types";
 
 type CourtRecord = {
@@ -173,9 +173,9 @@ export async function submitBooking(params: BookingSubmitParams): Promise<Bookin
     return { ok: false, error: "Supabase is not configured on this deployment." };
   }
 
-  const accessToken = await getOrCreateAnonSession();
+  const accessToken = await getAuthenticatedSession();
   if (!accessToken) {
-    return { ok: false, error: "Could not establish a session. Please try again." };
+    return { ok: false, error: "Please sign in to complete your booking." };
   }
 
   const body = {
@@ -212,8 +212,8 @@ export async function submitBooking(params: BookingSubmitParams): Promise<Bookin
       return { ok: false, error: msg };
     }
 
-    const data = await res.json() as { bookingId: string; status: string };
-    return { ok: true, bookingId: data.bookingId, status: data.status };
+    const data = await res.json() as { bookingId: string; bookingReference: string; status: string };
+    return { ok: true, bookingId: data.bookingId, bookingReference: data.bookingReference, status: data.status };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "Network error." };
   }

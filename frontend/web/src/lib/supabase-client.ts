@@ -1,6 +1,6 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
-let _client: ReturnType<typeof createClient> | null = null;
+let _client: ReturnType<typeof createBrowserClient> | null = null;
 
 export function getSupabaseBrowserClient() {
   if (_client) return _client;
@@ -12,27 +12,25 @@ export function getSupabaseBrowserClient() {
     return null;
   }
 
-  _client = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-    },
-  });
-
+  _client = createBrowserClient(supabaseUrl, supabaseAnonKey);
   return _client;
 }
 
-export async function getOrCreateAnonSession(): Promise<string | null> {
+export async function getAuthenticatedSession(): Promise<string | null> {
   const client = getSupabaseBrowserClient();
   if (!client) return null;
 
-  const { data: sessionData } = await client.auth.getSession();
-  if (sessionData.session?.access_token) {
-    return sessionData.session.access_token;
-  }
+  const { data: { session } } = await client.auth.getSession();
+  if (!session?.access_token) return null;
 
-  const { data, error } = await client.auth.signInAnonymously();
-  if (error || !data.session?.access_token) return null;
+  // Reject anonymous sessions — checkout requires a real account
+  const { data: { user } } = await client.auth.getUser();
+  if (!user || user.is_anonymous) return null;
 
-  return data.session.access_token;
+  return session.access_token;
+}
+
+/** @deprecated Use getAuthenticatedSession() — anonymous checkout is no longer supported */
+export async function getOrCreateAnonSession(): Promise<string | null> {
+  return getAuthenticatedSession();
 }

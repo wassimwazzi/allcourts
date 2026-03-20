@@ -27,5 +27,14 @@ export async function getAuthenticatedUser(request: Request) {
     throw new HttpError(401, "invalid_bearer_token", "Invalid bearer token.");
   }
 
+  // Anonymous sessions cannot make bookings — a real account is required.
+  if (data.user.is_anonymous) {
+    throw new HttpError(
+      401,
+      "anonymous_session_not_allowed",
+      "An authenticated account is required to make a booking. Please sign in or create an account.",
+    );
+  }
+
   return data.user;
 }

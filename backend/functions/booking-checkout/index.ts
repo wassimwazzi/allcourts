@@ -22,6 +22,7 @@ import { createAdminClient, getAuthenticatedUser } from "../_shared/supabase.ts"
 
 type StoredBooking = {
   id: string;
+  booking_reference: string;
   status: string;
   payment_status: string;
   total_cents: number;
@@ -53,6 +54,7 @@ function buildCheckoutResponse(
   return {
     requestId,
     bookingId: booking.id,
+    bookingReference: booking.booking_reference,
     status: booking.status,
     paymentStatus: booking.payment_status,
     amountCents: booking.total_cents,
@@ -123,7 +125,7 @@ serve(async (request: Request) => {
     if (existingAttempt) {
       const { data: existingBookingData, error: existingBookingError } = await admin
         .from("bookings")
-        .select("id, status, payment_status, total_cents, currency, provider_payment_intent_id, provider_checkout_session_id")
+        .select("id, booking_reference, status, payment_status, total_cents, currency, provider_payment_intent_id, provider_checkout_session_id")
         .eq("id", existingAttempt.booking_id)
         .maybeSingle();
       const existingBooking = existingBookingData as StoredBooking | null;
@@ -152,7 +154,7 @@ serve(async (request: Request) => {
 
     const { data: existingBookingData, error: existingBookingError } = await admin
       .from("bookings")
-      .select("id, status, payment_status, total_cents, currency, provider_payment_intent_id, provider_checkout_session_id")
+      .select("id, booking_reference, status, payment_status, total_cents, currency, provider_payment_intent_id, provider_checkout_session_id")
       .eq("profile_id", user.id)
       .eq("idempotency_key", idempotencyKey)
       .maybeSingle();
@@ -203,7 +205,7 @@ serve(async (request: Request) => {
       const { data: bookingData, error: bookingError } = await admin
         .from("bookings")
         .insert(bookingPayload)
-        .select("id, status, payment_status, total_cents, currency, provider_payment_intent_id, provider_checkout_session_id")
+        .select("id, booking_reference, status, payment_status, total_cents, currency, provider_payment_intent_id, provider_checkout_session_id")
         .single();
 
       if (bookingError || !bookingData) {
@@ -219,7 +221,7 @@ serve(async (request: Request) => {
         if (isIdempotencyConflict) {
           const { data: conflictedBookingData, error: conflictedBookingError } = await admin
             .from("bookings")
-            .select("id, status, payment_status, total_cents, currency, provider_payment_intent_id, provider_checkout_session_id")
+            .select("id, booking_reference, status, payment_status, total_cents, currency, provider_payment_intent_id, provider_checkout_session_id")
             .eq("profile_id", user.id)
             .eq("idempotency_key", idempotencyKey)
             .maybeSingle();

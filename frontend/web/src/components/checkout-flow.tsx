@@ -34,6 +34,7 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState("");
+  const [bookingReference, setBookingReference] = useState("");
 
   const idempotencyKey = useMemo(() => crypto.randomUUID(), []);
 
@@ -45,6 +46,7 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
     setError(null);
 
     let firstBookingId = "";
+    let firstBookingRef = "";
     for (let i = 0; i < selectedSlots.length; i++) {
       const slot = selectedSlots[i];
       const result = await submitBooking({
@@ -65,11 +67,12 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
         setLoading(false);
         return;
       }
-      if (i === 0) firstBookingId = result.bookingId;
+      if (i === 0) { firstBookingId = result.bookingId; firstBookingRef = result.bookingReference ?? ""; }
     }
 
     setLoading(false);
     setBookingId(firstBookingId);
+    setBookingReference(firstBookingRef);
     setStep("confirmed");
   }
 
@@ -166,6 +169,7 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
             court={court}
             slots={selectedSlots}
             bookingId={bookingId}
+            bookingReference={bookingReference}
             name={name}
           />
         )}

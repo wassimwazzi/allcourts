@@ -22,6 +22,7 @@ export type BookingCheckoutRequest = {
 export type BookingCheckoutResponse = {
   requestId: string;
   bookingId: string;
+  bookingReference: string;
   status: string;
   paymentStatus: string;
   amountCents: number;

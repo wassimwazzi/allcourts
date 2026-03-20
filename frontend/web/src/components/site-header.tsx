@@ -1,5 +1,6 @@
 import type { Route } from "next";
 import Link from "next/link";
+import { AuthNav } from "@/components/auth/auth-nav";
 
 const navItems: Array<{ href: Route; label: string }> = [
   { href: "/", label: "Home" },
@@ -24,20 +25,24 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <nav aria-label="Primary navigation">
-          <ul className="flex flex-wrap items-center gap-2 md:gap-4">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <Link 
-                  href={item.href} 
-                  className="text-sm text-slate-300 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent md:text-base"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <div className="flex items-center gap-4">
+          <nav aria-label="Primary navigation">
+            <ul className="flex flex-wrap items-center gap-2 md:gap-4">
+              {navItems.map((item) => (
+                <li key={item.href}>
+                  <Link 
+                    href={item.href} 
+                    className="text-sm text-slate-300 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent md:text-base"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <AuthNav />
+        </div>
       </div>
     </header>
   );

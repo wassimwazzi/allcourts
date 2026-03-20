@@ -9,16 +9,17 @@ type BookingConfirmedProps = {
   court: CheckoutCourt;
   slots: CheckoutSlot[];
   bookingId: string;
+  bookingReference?: string;
   name: string;
 };
 
-export function BookingConfirmed({ court, slots, bookingId, name }: BookingConfirmedProps) {
+export function BookingConfirmed({ court, slots, bookingId, bookingReference, name }: BookingConfirmedProps) {
   const totalCents = slots.reduce((sum, s) => sum + s.priceCents, 0);
   const totalPrice = formatCurrency(totalCents / 100);
-  const shortRef = bookingId.slice(0, 8).toUpperCase();
+  const displayRef = bookingReference ?? bookingId.slice(0, 8).toUpperCase();
 
   const rows: [string, React.ReactNode][] = [
-    ["Reference", <strong key="ref" className="font-mono text-brand-accent">{shortRef}</strong>],
+    ["Reference", <strong key="ref" className="font-mono text-brand-accent">{displayRef}</strong>],
     ["Court", `${court.facilityName} · ${court.courtName}`],
     ...slots.map((slot, i): [string, string] => {
       const dateLabel = new Date(slot.date + "T00:00:00").toLocaleDateString("en-US", {
@@ -70,9 +71,9 @@ export function BookingConfirmed({ court, slots, bookingId, name }: BookingConfi
 
       <Link
         className="inline-flex min-h-[46px] items-center rounded-full bg-gradient-to-br from-brand-accent to-brand-blue px-8 font-bold text-slate-900 transition hover:-translate-y-px hover:shadow-lg"
-        href="/discover"
+        href="/bookings"
       >
-        Back to Discover
+        View My Bookings
       </Link>
     </div>
   );
