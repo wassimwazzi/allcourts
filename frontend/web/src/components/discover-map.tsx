@@ -122,9 +122,14 @@ export function DiscoverMap({ courts, selectedCourtId, onSelectCourt }: Discover
   }, []);
 
   return (
-    <div className="discover-map-shell">
-      <div className="discover-map" ref={mapRef} role="img" aria-label="Map of available courts" />
-      <ul className="map-court-list" aria-label="Available courts on map">
+    <div className="flex flex-col gap-3">
+      <div
+        className="w-full min-h-[260px] overflow-hidden rounded-2xl border border-slate-700/20 md:min-h-[320px]"
+        ref={mapRef}
+        role="img"
+        aria-label="Map of available courts"
+      />
+      <ul className="m-0 grid list-none gap-2 p-0" aria-label="Available courts on map">
         {mappableCourts.map((court) => {
           const isSelected = court.id === selectedCourtId;
 
@@ -132,12 +137,16 @@ export function DiscoverMap({ courts, selectedCourtId, onSelectCourt }: Discover
             <li key={court.id}>
               <button
                 type="button"
-                className={`map-court-button${isSelected ? " is-selected" : ""}`}
+                className={`grid w-full cursor-pointer gap-0.5 rounded-xl border px-3 py-2.5 text-left text-white transition ${
+                  isSelected
+                    ? "border-brand-accent/55 bg-brand-accent/10"
+                    : "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06]"
+                }`}
                 onClick={() => onSelectCourt(court.id)}
                 aria-pressed={isSelected}
               >
-                <span>{court.name}</span>
-                <small>{court.location}</small>
+                <span className="text-sm font-medium">{court.name}</span>
+                <small className="text-xs text-slate-400">{court.location}</small>
               </button>
             </li>
           );

@@ -28,7 +28,7 @@ export default function HomePage() {
               Every court. Instant booking.
             </p>
             <Link
-              className="inline-flex min-h-[54px] items-center justify-center gap-2 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 px-8 py-3 text-lg font-bold text-slate-900 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/20 active:translate-y-0"
+              className="inline-flex min-h-[54px] items-center justify-center gap-2 rounded-full bg-gradient-to-br from-brand-accent to-brand-blue px-8 py-3 text-lg font-bold text-slate-900 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-brand-accent/20 active:translate-y-0"
               href="/discover"
             >
               Start Booking Now
