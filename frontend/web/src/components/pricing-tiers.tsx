@@ -1,7 +1,7 @@
 "use client";
 
 import type { Route } from "next";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 type Tier = {
@@ -68,17 +68,24 @@ const tiers: Tier[] = [
 
 export function PricingTiers() {
   const gridRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [headerVisible, setHeaderVisible] = useState(false);
 
   useEffect(() => {
     const grid = gridRef.current;
-    if (!grid) return;
+    const header = headerRef.current;
+    if (!grid || !header) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
+            // Animate header first
+            setHeaderVisible(true);
+            
+            // Then animate cards with stagger
             grid.querySelectorAll<HTMLElement>(".tier-card").forEach((card, i) => {
-              setTimeout(() => card.classList.add("visible"), i * 120);
+              setTimeout(() => card.classList.add("visible"), 300 + i * 120);
             });
             observer.unobserve(entry.target);
           }
@@ -97,7 +104,12 @@ export function PricingTiers() {
       className="w-full max-w-[1180px] mx-auto px-3 py-24 md:py-32" 
       aria-labelledby="pricing-title"
     >
-      <div className="mb-16 text-center">
+      <div 
+        className={`mb-16 text-center transition-all duration-500 ease-out ${
+          headerVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+        }`} 
+        ref={headerRef}
+      >
         <span className="inline-block mb-3 px-4 py-1.5 rounded-full bg-brand-accent/10 text-brand-accent text-xs font-bold uppercase tracking-widest">
           Membership Plans
         </span>

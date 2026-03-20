@@ -72,7 +72,7 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Used by JS IntersectionObserver in pricing-tiers.tsx */
+/* Small utility classes used by JavaScript-driven animations */
 .tier-card.visible {
   opacity: 1;
   transform: translateY(0);
