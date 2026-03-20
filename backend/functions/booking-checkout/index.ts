@@ -9,7 +9,7 @@ import {
   json,
   methodNotAllowed,
   readJson,
-} from "../_shared/http";
+} from "../_shared/http.ts";
 import {
   type BookingCheckoutRequest,
   type BookingCheckoutResponse,
@@ -17,8 +17,8 @@ import {
   getCheckoutWarnings,
   normalizeBookingCheckoutRequest,
   placeholderCheckoutReference,
-} from "../_shared/payments";
-import { createAdminClient, getAuthenticatedUser } from "../_shared/supabase";
+} from "../_shared/payments.ts";
+import { createAdminClient, getAuthenticatedUser } from "../_shared/supabase.ts";
 
 type StoredBooking = {
   id: string;
