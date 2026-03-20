@@ -69,28 +69,47 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
   }
 
   return (
-    <div className="checkout-shell">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-10 pb-20">
       {/* Progress bar */}
       {step !== "confirmed" && (
-        <nav className="checkout-progress" aria-label="Checkout steps">
+        <nav className="flex items-center justify-center gap-0" aria-label="Checkout steps">
           {STEPS.filter((s) => s.id !== "confirmed").map((s, i) => (
             <div
               key={s.id}
-              className={`checkout-progress-step${i < currentStepIndex ? " checkout-progress-done" : i === currentStepIndex ? " checkout-progress-active" : ""}`}
+              className={`relative flex flex-col items-center gap-2 px-4 ${
+                i < currentStepIndex 
+                  ? "text-emerald-400" 
+                  : i === currentStepIndex 
+                  ? "text-white" 
+                  : "text-slate-500"
+              }`}
               aria-current={s.id === step ? "step" : undefined}
             >
-              <span className="checkout-progress-num">
+              <span className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold transition-all ${
+                i < currentStepIndex
+                  ? "bg-emerald-400/20 text-emerald-400"
+                  : i === currentStepIndex
+                  ? "bg-white/10 text-white ring-2 ring-white/30"
+                  : "bg-slate-800 text-slate-500"
+              }`}>
                 {i < currentStepIndex ? "✓" : i + 1}
               </span>
-              <span className="checkout-progress-label">{s.label}</span>
-              {i < 2 && <span className="checkout-progress-line" aria-hidden="true" />}
+              <span className="text-xs font-medium">{s.label}</span>
+              {i < 2 && (
+                <span 
+                  className={`absolute left-1/2 top-5 h-0.5 w-full ${
+                    i < currentStepIndex ? "bg-emerald-400/40" : "bg-slate-700"
+                  }`}
+                  aria-hidden="true" 
+                />
+              )}
             </div>
           ))}
         </nav>
       )}
 
       {/* Step panels */}
-      <div className="checkout-panel surface">
+      <div className="overflow-hidden rounded-3xl border border-slate-700/20 bg-gradient-to-b from-slate-800/90 to-slate-900/90 shadow-2xl">
         {step === "slot" && (
           <SlotPicker
             court={court}

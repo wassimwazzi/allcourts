@@ -9,23 +9,31 @@ const navItems: Array<{ href: Route; label: string }> = [
 
 export function SiteHeader() {
   return (
-    <header className="site-header-wrap">
-      <div className="site-header page-shell">
-        <Link className="brand-mark" href="/">
-          <span className="brand-badge" aria-hidden="true">
+    <header className="sticky top-0 z-20 border-b border-slate-700/20 bg-slate-900/80 backdrop-blur-lg">
+      <div className="mx-auto flex max-w-[1180px] items-center justify-between gap-4 px-3 py-3.5">
+        <Link className="inline-flex items-center gap-3.5" href="/">
+          <span 
+            className="grid h-11 w-11 place-items-center rounded-xl border border-emerald-400/30 bg-gradient-to-br from-emerald-400/20 to-blue-500/25 text-base font-extrabold text-white" 
+            aria-hidden="true"
+          >
             AC
           </span>
           <span>
-            <strong>AllCourts</strong>
-            <small>Bookings-first marketplace</small>
+            <strong className="block text-base text-white">AllCourts</strong>
+            <small className="block text-sm text-slate-400">Bookings-first marketplace</small>
           </span>
         </Link>
 
         <nav aria-label="Primary navigation">
-          <ul className="nav-list">
+          <ul className="flex flex-wrap items-center gap-2 md:gap-4">
             {navItems.map((item) => (
               <li key={item.href}>
-                <Link href={item.href}>{item.label}</Link>
+                <Link 
+                  href={item.href} 
+                  className="text-sm text-slate-300 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400 md:text-base"
+                >
+                  {item.label}
+                </Link>
               </li>
             ))}
           </ul>

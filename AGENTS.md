@@ -21,11 +21,13 @@ This file is the repository-wide default for coding agents.
 - `packages/types`, `packages/validation`, `packages/sdk`, `packages/ui-web`, `packages/config`: shared contracts and foundations.
 
 ## Git workflow
-After every completed feature or task:
+For every feature or task:
 1. Create a `feature/<kebab-name>` branch off `main` if not already on one.
 2. Commit all changes with a descriptive message following conventional commits (`feat:`, `fix:`, `chore:`, etc.) and always include the Co-authored-by trailer.
 3. Push the branch: `git push origin feature/<kebab-name>`.
-4. Open a PR against `main` using `gh pr create --base main --title "..." --body "..."`. If `gh` is not authenticated, output the GitHub compare URL instead: `https://github.com/wassimwazzi/allcourts/compare/main...<branch-name>`.
+4. Ask the user for one of the 2 options:
+    1. Open a PR against `main` using `gh pr create --base main --title "..." --body "..."`. If `gh` is not authenticated, output the GitHub compare URL instead: `https://github.com/wassimwazzi/allcourts/compare/main...<branch-name>`.
+    2. If the change is small and straightforward, ask the user to describe the change in a comment and merge the branch into `main` using `git merge --no-ff feature/<kebab-name>` followed by `git push origin main`.
 5. Never push directly to `main`.
 
 ## Setup commands
@@ -51,6 +53,18 @@ Use only scripts that already exist. If a package does not expose a script for t
 - **Fewer elements is better.** When in doubt, leave it out.
 - **One clear primary action per card or screen.** Avoid offering many choices at once — pick the most important one and make it prominent.
 - **Clarity over completeness.** A user understanding 80% of the information quickly is better than them understanding 100% slowly.
+
+## Styling and CSS guidelines
+- **Use Tailwind utilities exclusively.** Do NOT add custom CSS classes to `globals.css`.
+- `globals.css` should only contain:
+  - Tailwind directives (`@tailwind base;`, `@tailwind components;`, `@tailwind utilities;`)
+  - CSS variables in `:root`
+  - Minimal base HTML element resets (html, body, a, img)
+  - Small utility classes used by animation libraries (e.g., `.tier-card.visible`)
+- For component-specific styles, use Tailwind utility classes directly in JSX/TSX.
+- For repeated patterns, create shared React components with Tailwind classes, not CSS classes.
+- Avoid custom animations in globals.css. Use Tailwind's `animate-*` classes or define animations inline with the `style` prop when needed.
+- Keep `globals.css` under 200 lines total.
 
 ## Validation expectations
 - Validate the smallest relevant surface for the files you changed.

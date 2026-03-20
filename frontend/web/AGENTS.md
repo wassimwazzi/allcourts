@@ -27,6 +27,18 @@ This file applies to `frontend/web/*` and overrides the higher-level frontend gu
 - Match the current visual direction: 21st.dev-inspired hierarchy, strong CTAs, clean spacing, and booking-first scanning.
 - Keep admin pages operational, not back-office heavy.
 
+## Styling and CSS guidelines
+- **Use Tailwind utilities exclusively.** Do NOT add custom CSS classes to `app/globals.css`.
+- `app/globals.css` should only contain:
+  - Tailwind directives (`@tailwind base;`, `@tailwind components;`, `@tailwind utilities;`)
+  - CSS variables in `:root`
+  - Minimal base HTML element resets (html, body, a, img)
+  - Small utility classes for JavaScript-driven animations (e.g., `.tier-card.visible`)
+- For component styles, use Tailwind utility classes directly in JSX/TSX.
+- For repeated patterns, create shared React components with Tailwind classes, not CSS classes.
+- Avoid custom `@keyframe` animations in globals.css. Use Tailwind's `animate-*` classes or inline styles.
+- Keep `app/globals.css` under 200 lines total.
+
 ## Validation
 - After every web code change, run both `pnpm --filter @allcourts/web lint` and `pnpm --filter @allcourts/web typecheck` before handing off.
 - Run `pnpm --filter @allcourts/web build` for route or component changes.

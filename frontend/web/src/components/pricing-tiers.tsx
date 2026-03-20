@@ -77,7 +77,7 @@ export function PricingTiers() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            grid.querySelectorAll<HTMLElement>(".pricing-card").forEach((card, i) => {
+            grid.querySelectorAll<HTMLElement>(".tier-card").forEach((card, i) => {
               setTimeout(() => card.classList.add("visible"), i * 120);
             });
             observer.unobserve(entry.target);
@@ -92,42 +92,73 @@ export function PricingTiers() {
   }, []);
 
   return (
-    <section id="pricing" className="pricing-section page-shell" aria-labelledby="pricing-title">
-      <div className="pricing-header">
-        <span className="section-badge">Membership Plans</span>
-        <h2 className="section-title" id="pricing-title">Play more for less</h2>
-        <p className="section-description">
+    <section 
+      id="pricing" 
+      className="w-full max-w-[1180px] mx-auto px-3 py-24 md:py-32" 
+      aria-labelledby="pricing-title"
+    >
+      <div className="mb-16 text-center">
+        <span className="inline-block mb-3 px-4 py-1.5 rounded-full bg-emerald-400/10 text-emerald-400 text-xs font-bold uppercase tracking-widest">
+          Membership Plans
+        </span>
+        <h2 className="mb-4 text-4xl font-bold tracking-tight text-white md:text-5xl" id="pricing-title">
+          Play more for less
+        </h2>
+        <p className="mx-auto max-w-lg text-lg text-slate-300">
           Choose the plan that fits your game. Upgrade or cancel anytime — no lock-in.
         </p>
       </div>
-      <div className="pricing-grid" ref={gridRef}>
-        {tiers.map((tier) => (
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start" ref={gridRef}>
+        {tiers.map((tier, idx) => (
           <div
             key={tier.name}
-            className={`pricing-card surface${tier.featured ? " pricing-card-featured" : ""}`}
+            className={`tier-card relative flex flex-col gap-7 rounded-3xl border p-9 opacity-0 translate-y-9 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl ${
+              tier.featured
+                ? "border-emerald-400/30 bg-gradient-to-b from-slate-800/95 to-slate-900/95 md:-translate-y-1.5"
+                : "border-slate-700/20 bg-gradient-to-b from-slate-800/90 to-slate-900/90"
+            }`}
+            style={{ transitionDelay: `${idx * 120}ms` }}
           >
             {tier.featured && (
-              <span className="pricing-popular-badge">Most Popular</span>
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-gradient-to-r from-emerald-400 to-blue-500 px-5 py-1.5 text-xs font-extrabold uppercase tracking-wider text-slate-900">
+                Most Popular
+              </span>
             )}
-            <div className="pricing-card-top">
-              <h3 className="pricing-tier-name">{tier.name}</h3>
-              <p className="pricing-tagline">{tier.tagline}</p>
+
+            <div>
+              <h3 className="mb-1.5 text-2xl font-extrabold text-white">{tier.name}</h3>
+              <p className="text-sm text-slate-400">{tier.tagline}</p>
             </div>
-            <div className="pricing-price-wrap">
-              <span className="pricing-price">{tier.price}</span>
-              {tier.period && <span className="pricing-period">{tier.period}</span>}
+
+            <div className="flex items-baseline gap-1">
+              <span className="text-5xl font-black leading-none tracking-tight text-white">
+                {tier.price}
+              </span>
+              {tier.period && <span className="text-base text-slate-400">{tier.period}</span>}
             </div>
-            <ul className="pricing-features" aria-label={`${tier.name} plan features`}>
+
+            <ul 
+              className="flex flex-1 flex-col gap-3.5 border-t border-slate-700/50 pt-6" 
+              aria-label={`${tier.name} plan features`}
+            >
               {tier.features.map((feature) => (
-                <li key={feature} className="pricing-feature">
-                  <span className="pricing-check" aria-hidden="true">✓</span>
+                <li key={feature} className="flex items-center gap-3 text-sm text-slate-300">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center text-emerald-400 font-bold" aria-hidden="true">
+                    ✓
+                  </span>
                   {feature}
                 </li>
               ))}
             </ul>
+
             <Link
               href={tier.href}
-              className={`button button-large pricing-cta-btn${tier.featured ? " button-primary" : " button-outline"}`}
+              className={`mt-1 inline-flex h-14 w-full items-center justify-center rounded-full px-7 text-lg font-bold transition-all hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 ${
+                tier.featured
+                  ? "bg-gradient-to-r from-emerald-400 to-blue-500 text-slate-900 hover:shadow-emerald-500/25"
+                  : "border-2 border-slate-600/30 bg-transparent text-white hover:border-slate-500/50 hover:bg-slate-800/50"
+              }`}
             >
               {tier.cta}
             </Link>

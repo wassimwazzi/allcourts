@@ -17,9 +17,9 @@ export default async function CheckoutCourtPage({ params }: PageProps) {
   }
 
   return (
-    <div className="app-shell">
+    <div className="min-h-screen">
       <SiteHeader />
-      <main className="page-shell page-stack">
+      <main className="mx-auto w-full max-w-[1180px] px-3 py-6 pb-20">
         <CheckoutFlow court={court} />
       </main>
       <SiteFooter />
