@@ -1,3 +1,4 @@
+// @ts-expect-error - Deno stdlib import is valid for Supabase Edge Functions runtime
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import {
   empty,
@@ -8,7 +9,7 @@ import {
   json,
   methodNotAllowed,
   readJson,
-} from "../_shared/http.ts";
+} from "../_shared/http";
 import {
   type BookingCheckoutRequest,
   type BookingCheckoutResponse,
@@ -16,8 +17,8 @@ import {
   getCheckoutWarnings,
   normalizeBookingCheckoutRequest,
   placeholderCheckoutReference,
-} from "../_shared/payments.ts";
-import { createAdminClient, getAuthenticatedUser } from "../_shared/supabase.ts";
+} from "../_shared/payments";
+import { createAdminClient, getAuthenticatedUser } from "../_shared/supabase";
 
 type StoredBooking = {
   id: string;
@@ -83,7 +84,7 @@ function buildCheckoutResponse(
   };
 }
 
-serve(async (request) => {
+serve(async (request: Request) => {
   const requestId = getRequestId(request);
 
   try {

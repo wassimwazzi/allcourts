@@ -26,7 +26,7 @@ export class HttpError extends Error {
 function withHeaders(headers?: HeadersInit, requestId?: string): Headers {
   const merged = new Headers(corsHeaders);
   if (headers) {
-    new Headers(headers).forEach((value, key) => merged.set(key, value));
+    new Headers(headers).forEach((value: string, key: string) => merged.set(key, value));
   }
   if (requestId) {
     merged.set("x-request-id", requestId);
