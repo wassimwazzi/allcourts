@@ -98,7 +98,7 @@ export function PricingTiers() {
       aria-labelledby="pricing-title"
     >
       <div className="mb-16 text-center">
-        <span className="inline-block mb-3 px-4 py-1.5 rounded-full bg-emerald-400/10 text-emerald-400 text-xs font-bold uppercase tracking-widest">
+        <span className="inline-block mb-3 px-4 py-1.5 rounded-full bg-brand-accent/10 text-brand-accent text-xs font-bold uppercase tracking-widest">
           Membership Plans
         </span>
         <h2 className="mb-4 text-4xl font-bold tracking-tight text-white md:text-5xl" id="pricing-title">
@@ -115,13 +115,13 @@ export function PricingTiers() {
             key={tier.name}
             className={`tier-card relative flex flex-col gap-7 rounded-3xl border p-9 opacity-0 translate-y-9 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl ${
               tier.featured
-                ? "border-emerald-400/30 bg-gradient-to-b from-slate-800/95 to-slate-900/95 md:-translate-y-1.5"
+                ? "border-brand-accent/30 bg-gradient-to-b from-slate-800/95 to-slate-900/95 md:-translate-y-1.5"
                 : "border-slate-700/20 bg-gradient-to-b from-slate-800/90 to-slate-900/90"
             }`}
             style={{ transitionDelay: `${idx * 120}ms` }}
           >
             {tier.featured && (
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-gradient-to-r from-emerald-400 to-blue-500 px-5 py-1.5 text-xs font-extrabold uppercase tracking-wider text-slate-900">
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-gradient-to-r from-brand-accent to-brand-blue px-5 py-1.5 text-xs font-extrabold uppercase tracking-wider text-slate-900">
                 Most Popular
               </span>
             )}
@@ -144,7 +144,7 @@ export function PricingTiers() {
             >
               {tier.features.map((feature) => (
                 <li key={feature} className="flex items-center gap-3 text-sm text-slate-300">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center text-emerald-400 font-bold" aria-hidden="true">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center text-brand-accent font-bold" aria-hidden="true">
                     ✓
                   </span>
                   {feature}
@@ -156,7 +156,7 @@ export function PricingTiers() {
               href={tier.href}
               className={`mt-1 inline-flex h-14 w-full items-center justify-center rounded-full px-7 text-lg font-bold transition-all hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 ${
                 tier.featured
-                  ? "bg-gradient-to-r from-emerald-400 to-blue-500 text-slate-900 hover:shadow-emerald-500/25"
+                  ? "bg-gradient-to-r from-brand-accent to-brand-blue text-slate-900 hover:shadow-brand-accent/25"
                   : "border-2 border-slate-600/30 bg-transparent text-white hover:border-slate-500/50 hover:bg-slate-800/50"
               }`}
             >

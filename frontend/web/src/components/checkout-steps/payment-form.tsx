@@ -29,6 +29,11 @@ function formatExpiry(raw: string): string {
   return digits;
 }
 
+const inputClass =
+  "w-full rounded-xl border border-slate-700/25 bg-white/[0.04] px-4 py-3 text-base text-white placeholder:text-slate-500 outline-none transition focus:border-brand-accent/50 focus:shadow-[0_0_0_3px_rgb(var(--brand-accent)/0.08)]";
+
+const fieldLabelClass = "mb-1.5 block text-sm font-semibold text-slate-300";
+
 export function PaymentForm({
   court, slot, name, cardNumber, expiry, cvv,
   onCardNumberChange, onExpiryChange, onCvvChange,
@@ -40,96 +45,101 @@ export function PaymentForm({
   });
 
   return (
-    <div className="checkout-step">
-      <h2 className="checkout-step-title">Payment</h2>
-      <p className="checkout-step-subtitle">Review your booking and enter payment details.</p>
+    <div className="flex flex-col gap-6">
+      <div>
+        <h2 className="mb-1 text-2xl font-extrabold text-white">Payment</h2>
+        <p className="text-sm text-slate-400">Review your booking and enter payment details.</p>
+      </div>
 
       {/* Booking summary */}
-      <div className="checkout-summary">
-        <div className="checkout-summary-row">
-          <span>{court.facilityName} · {court.courtName}</span>
-        </div>
-        <div className="checkout-summary-row">
-          <span>{dateLabel}</span>
-          <span>{slot.label}</span>
-        </div>
-        <div className="checkout-summary-row">
-          <span>Booked for</span>
-          <span>{name}</span>
-        </div>
-        <div className="checkout-summary-divider" />
-        <div className="checkout-summary-row checkout-summary-total">
+      <div className="flex flex-col gap-0 overflow-hidden rounded-xl border border-slate-700/20 bg-white/[0.03]">
+        {[
+          [court.facilityName + " · " + court.courtName, ""],
+          [dateLabel, slot.label],
+          ["Booked for", name],
+        ].map(([label, value], i) => (
+          <div key={i} className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-slate-300 border-b border-slate-700/15 last:border-b-0">
+            <span>{label}</span>
+            {value && <span className="text-slate-400">{value}</span>}
+          </div>
+        ))}
+        <div className="flex items-center justify-between gap-3 px-4 py-3 text-base font-bold text-white border-t border-slate-700/25">
           <span>Total</span>
-          <strong>{price}</strong>
+          <strong className="text-brand-accent">{price}</strong>
         </div>
       </div>
 
       {/* Dummy payment fields */}
-      <div className="checkout-payment-section">
-        <p className="checkout-payment-label">
-          <span className="checkout-lock-icon" aria-hidden="true">🔒</span>
-          Card details
+      <div className="flex flex-col gap-4">
+        <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+          <span aria-hidden="true">🔒</span> Card details
         </p>
 
-        <div className="checkout-fields">
-          <label className="checkout-field">
-            <span className="checkout-field-label">Card number</span>
+        <label className="flex flex-col">
+          <span className={fieldLabelClass}>Card number</span>
+          <input
+            type="text"
+            className={inputClass}
+            value={cardNumber}
+            onChange={(e) => onCardNumberChange(formatCardNumber(e.target.value))}
+            placeholder="4242 4242 4242 4242"
+            inputMode="numeric"
+            maxLength={19}
+            autoComplete="cc-number"
+          />
+        </label>
+
+        <div className="grid grid-cols-2 gap-3">
+          <label className="flex flex-col">
+            <span className={fieldLabelClass}>Expiry</span>
             <input
               type="text"
-              className="checkout-input"
-              value={cardNumber}
-              onChange={(e) => onCardNumberChange(formatCardNumber(e.target.value))}
-              placeholder="4242 4242 4242 4242"
+              className={inputClass}
+              value={expiry}
+              onChange={(e) => onExpiryChange(formatExpiry(e.target.value))}
+              placeholder="MM / YY"
               inputMode="numeric"
-              maxLength={19}
-              autoComplete="cc-number"
+              maxLength={7}
+              autoComplete="cc-exp"
             />
           </label>
-
-          <div className="checkout-fields-row">
-            <label className="checkout-field">
-              <span className="checkout-field-label">Expiry</span>
-              <input
-                type="text"
-                className="checkout-input"
-                value={expiry}
-                onChange={(e) => onExpiryChange(formatExpiry(e.target.value))}
-                placeholder="MM / YY"
-                inputMode="numeric"
-                maxLength={7}
-                autoComplete="cc-exp"
-              />
-            </label>
-            <label className="checkout-field">
-              <span className="checkout-field-label">CVV</span>
-              <input
-                type="text"
-                className="checkout-input"
-                value={cvv}
-                onChange={(e) => onCvvChange(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                placeholder="123"
-                inputMode="numeric"
-                maxLength={4}
-                autoComplete="cc-csc"
-              />
-            </label>
-          </div>
+          <label className="flex flex-col">
+            <span className={fieldLabelClass}>CVV</span>
+            <input
+              type="text"
+              className={inputClass}
+              value={cvv}
+              onChange={(e) => onCvvChange(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              placeholder="123"
+              inputMode="numeric"
+              maxLength={4}
+              autoComplete="cc-csc"
+            />
+          </label>
         </div>
       </div>
 
       {error && (
-        <div className="checkout-error" role="alert">
+        <div
+          className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+          role="alert"
+        >
           {error}
         </div>
       )}
 
-      <div className="checkout-step-actions">
-        <button type="button" className="button button-secondary" onClick={onBack} disabled={loading}>
+      <div className="flex flex-wrap gap-3">
+        <button
+          type="button"
+          className="inline-flex min-h-[46px] items-center rounded-full border border-white/10 bg-white/[0.04] px-6 font-semibold text-white transition hover:bg-white/[0.08] disabled:opacity-50"
+          onClick={onBack}
+          disabled={loading}
+        >
           Back
         </button>
         <button
           type="button"
-          className="button button-primary"
+          className="inline-flex min-h-[46px] items-center rounded-full bg-gradient-to-br from-brand-accent to-brand-blue px-6 font-bold text-slate-900 transition hover:-translate-y-px hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={onSubmit}
           disabled={loading}
         >

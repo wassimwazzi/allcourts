@@ -11,11 +11,18 @@ const config: Config = {
   theme: {
     extend: {
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        "2xl": "var(--radius-xl)",
+        xl: "var(--radius-lg)",
+        lg: "var(--radius-md)",
+        md: "var(--radius)",
+        sm: "calc(var(--radius) - 2px)",
       },
       colors: {
+        // AllCourts brand tokens — change values in globals.css :root to retheme the whole app
+        "brand-accent": "rgb(var(--brand-accent) / <alpha-value>)",
+        "brand-blue": "rgb(var(--brand-blue) / <alpha-value>)",
+
+        // shadcn/ui semantic tokens — used by src/components/ui/*
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {

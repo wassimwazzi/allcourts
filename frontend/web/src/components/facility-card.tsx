@@ -24,7 +24,7 @@ export function FacilityCard({ facility, compact = false }: FacilityCardProps) {
           height={360}
           className="h-56 w-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
-        <span className="absolute right-3 top-3 rounded-full bg-slate-900/80 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-emerald-400 backdrop-blur-sm">
+        <span className="absolute right-3 top-3 rounded-full bg-slate-900/80 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-brand-accent backdrop-blur-sm">
           {facility.sport}
         </span>
       </div>
@@ -34,11 +34,11 @@ export function FacilityCard({ facility, compact = false }: FacilityCardProps) {
         <p className="text-sm text-slate-400">{facility.location}</p>
 
         <div className="mt-2 flex items-center justify-between gap-3">
-          <span className="text-lg font-extrabold text-emerald-400">
+          <span className="text-lg font-extrabold text-brand-accent">
             From {formatCurrency(facility.priceFrom)}
           </span>
           <Link 
-            className="inline-flex h-11 items-center justify-center rounded-full bg-gradient-to-r from-emerald-400 to-blue-500 px-6 text-sm font-bold text-slate-900 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/20 active:translate-y-0" 
+            className="inline-flex h-11 items-center justify-center rounded-full bg-gradient-to-r from-brand-accent to-brand-blue px-6 text-sm font-bold text-slate-900 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-accent/20 active:translate-y-0" 
             href={bookingHref}
           >
             Book Now

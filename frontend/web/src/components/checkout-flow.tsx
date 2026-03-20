@@ -78,7 +78,7 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
               key={s.id}
               className={`relative flex flex-col items-center gap-2 px-4 ${
                 i < currentStepIndex 
-                  ? "text-emerald-400" 
+                  ? "text-brand-accent" 
                   : i === currentStepIndex 
                   ? "text-white" 
                   : "text-slate-500"
@@ -87,7 +87,7 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
             >
               <span className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold transition-all ${
                 i < currentStepIndex
-                  ? "bg-emerald-400/20 text-emerald-400"
+                  ? "bg-brand-accent/20 text-brand-accent"
                   : i === currentStepIndex
                   ? "bg-white/10 text-white ring-2 ring-white/30"
                   : "bg-slate-800 text-slate-500"
@@ -98,7 +98,7 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
               {i < 2 && (
                 <span 
                   className={`absolute left-1/2 top-5 h-0.5 w-full ${
-                    i < currentStepIndex ? "bg-emerald-400/40" : "bg-slate-700"
+                    i < currentStepIndex ? "bg-brand-accent/40" : "bg-slate-700"
                   }`}
                   aria-hidden="true" 
                 />
@@ -109,7 +109,7 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
       )}
 
       {/* Step panels */}
-      <div className="overflow-hidden rounded-3xl border border-slate-700/20 bg-gradient-to-b from-slate-800/90 to-slate-900/90 shadow-2xl">
+      <div className="overflow-hidden rounded-3xl border border-slate-700/20 bg-gradient-to-b from-slate-800/90 to-slate-900/90 p-6 shadow-2xl md:p-8">
         {step === "slot" && (
           <SlotPicker
             court={court}
