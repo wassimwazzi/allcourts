@@ -1,28 +1,31 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import type { CheckoutCourt, CheckoutSlot } from "@allcourts/types";
 import { formatCurrency } from "@/lib/env";
 
 type BookingConfirmedProps = {
   court: CheckoutCourt;
-  slot: CheckoutSlot;
+  slots: CheckoutSlot[];
   bookingId: string;
   name: string;
 };
 
-export function BookingConfirmed({ court, slot, bookingId, name }: BookingConfirmedProps) {
-  const price = formatCurrency(slot.priceCents / 100);
-  const dateLabel = new Date(slot.date + "T00:00:00").toLocaleDateString("en-US", {
-    weekday: "long", month: "long", day: "numeric",
-  });
+export function BookingConfirmed({ court, slots, bookingId, name }: BookingConfirmedProps) {
+  const totalCents = slots.reduce((sum, s) => sum + s.priceCents, 0);
+  const totalPrice = formatCurrency(totalCents / 100);
   const shortRef = bookingId.slice(0, 8).toUpperCase();
 
-  const rows = [
+  const rows: [string, React.ReactNode][] = [
     ["Reference", <strong key="ref" className="font-mono text-brand-accent">{shortRef}</strong>],
     ["Court", `${court.facilityName} · ${court.courtName}`],
-    ["Date", dateLabel],
-    ["Time", slot.label],
+    ...slots.map((slot, i): [string, string] => {
+      const dateLabel = new Date(slot.date + "T00:00:00").toLocaleDateString("en-US", {
+        weekday: "short", month: "short", day: "numeric",
+      });
+      return [slots.length > 1 ? `Slot ${i + 1}` : "Date & time", `${dateLabel} · ${slot.label}`];
+    }),
     ["Booked for", name],
   ];
 
@@ -56,7 +59,7 @@ export function BookingConfirmed({ court, slot, bookingId, name }: BookingConfir
         ))}
         <div className="flex items-center justify-between gap-3 border-t border-slate-700/25 px-4 py-3 font-bold">
           <span className="text-slate-300">Total</span>
-          <strong className="text-brand-accent">{price}</strong>
+          <strong className="text-brand-accent">{totalPrice}</strong>
         </div>
       </div>
 

@@ -5,7 +5,7 @@ import { formatCurrency } from "@/lib/env";
 
 type PaymentFormProps = {
   court: CheckoutCourt;
-  slot: CheckoutSlot;
+  slots: CheckoutSlot[];
   name: string;
   cardNumber: string;
   expiry: string;
@@ -35,14 +35,12 @@ const inputClass =
 const fieldLabelClass = "mb-1.5 block text-sm font-semibold text-slate-300";
 
 export function PaymentForm({
-  court, slot, name, cardNumber, expiry, cvv,
+  court, slots, name, cardNumber, expiry, cvv,
   onCardNumberChange, onExpiryChange, onCvvChange,
   onBack, onSubmit, loading, error,
 }: PaymentFormProps) {
-  const price = formatCurrency(slot.priceCents / 100);
-  const dateLabel = new Date(slot.date + "T00:00:00").toLocaleDateString("en-US", {
-    weekday: "short", month: "short", day: "numeric",
-  });
+  const totalCents = slots.reduce((sum, s) => sum + s.priceCents, 0);
+  const totalPrice = formatCurrency(totalCents / 100);
 
   return (
     <div className="flex flex-col gap-6">
@@ -53,19 +51,27 @@ export function PaymentForm({
 
       {/* Booking summary */}
       <div className="flex flex-col gap-0 overflow-hidden rounded-xl border border-slate-700/20 bg-white/[0.03]">
-        {[
-          [court.facilityName + " · " + court.courtName, ""],
-          [dateLabel, slot.label],
-          ["Booked for", name],
-        ].map(([label, value], i) => (
-          <div key={i} className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-slate-300 border-b border-slate-700/15 last:border-b-0">
-            <span>{label}</span>
-            {value && <span className="text-slate-400">{value}</span>}
-          </div>
-        ))}
+        <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-slate-300 border-b border-slate-700/15">
+          <span>{court.facilityName} · {court.courtName}</span>
+        </div>
+        {slots.map((slot, i) => {
+          const dateLabel = new Date(slot.date + "T00:00:00").toLocaleDateString("en-US", {
+            weekday: "short", month: "short", day: "numeric",
+          });
+          return (
+            <div key={i} className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-slate-300 border-b border-slate-700/15">
+              <span>{dateLabel} · {slot.label}</span>
+              <span className="text-slate-400">{formatCurrency(slot.priceCents / 100)}</span>
+            </div>
+          );
+        })}
+        <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-slate-300 border-b border-slate-700/15">
+          <span>Booked for</span>
+          <span className="text-slate-400">{name}</span>
+        </div>
         <div className="flex items-center justify-between gap-3 px-4 py-3 text-base font-bold text-white border-t border-slate-700/25">
           <span>Total</span>
-          <strong className="text-brand-accent">{price}</strong>
+          <strong className="text-brand-accent">{totalPrice}</strong>
         </div>
       </div>
 
@@ -143,7 +149,7 @@ export function PaymentForm({
           onClick={onSubmit}
           disabled={loading}
         >
-          {loading ? "Confirming…" : `Confirm Booking · ${price}`}
+          {loading ? "Confirming…" : `Confirm Booking · ${totalPrice}`}
         </button>
       </div>
     </div>

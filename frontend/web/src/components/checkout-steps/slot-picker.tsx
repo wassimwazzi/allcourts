@@ -6,9 +6,9 @@ import { formatCurrency } from "@/lib/env";
 type SlotPickerProps = {
   court: CheckoutCourt;
   selectedDate: string;
-  selectedSlot: CheckoutSlot | null;
+  selectedSlots: CheckoutSlot[];
   onDateChange: (date: string) => void;
-  onSlotSelect: (slot: CheckoutSlot) => void;
+  onSlotToggle: (slot: CheckoutSlot) => void;
   onNext: () => void;
 };
 
@@ -23,15 +23,15 @@ function formatDayLabel(dateStr: string): { weekday: string; day: string } {
   };
 }
 
-export function SlotPicker({ court, selectedDate, selectedSlot, onDateChange, onSlotSelect, onNext }: SlotPickerProps) {
+export function SlotPicker({ court, selectedDate, selectedSlots, onDateChange, onSlotToggle, onNext }: SlotPickerProps) {
   const availableDates = Object.keys(court.availabilityByDay).sort().slice(0, 7);
   const slotsForDate = court.availabilityByDay[selectedDate] ?? [];
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="mb-1 text-2xl font-extrabold text-white">Pick a time slot</h2>
-        <p className="text-sm text-slate-400">{court.facilityName} · {court.courtName}</p>
+        <h2 className="mb-1 text-2xl font-extrabold text-white">Pick time slots</h2>
+        <p className="text-sm text-slate-400">{court.facilityName} · {court.courtName} · Select one or more slots</p>
       </div>
 
       {availableDates.length === 0 ? (
@@ -78,8 +78,9 @@ export function SlotPicker({ court, selectedDate, selectedSlot, onDateChange, on
               aria-label="Available time slots"
             >
               {slotsForDate.map((slot, i) => {
-                const isActive =
-                  selectedSlot?.startTime === slot.startTime && selectedSlot?.date === slot.date;
+                const isActive = selectedSlots.some(
+                  (s) => s.startTime === slot.startTime && s.date === slot.date
+                );
                 return (
                   <button
                     key={i}
@@ -89,7 +90,7 @@ export function SlotPicker({ court, selectedDate, selectedSlot, onDateChange, on
                         ? "border-brand-accent bg-brand-accent/15"
                         : "border-slate-700/25 bg-white/[0.03] hover:border-slate-600/40 hover:bg-white/[0.07]"
                     }`}
-                    onClick={() => onSlotSelect(slot)}
+                    onClick={() => onSlotToggle(slot)}
                     aria-pressed={isActive}
                   >
                     <span className={`text-sm font-semibold ${isActive ? "text-brand-accent" : "text-white"}`}>
@@ -104,12 +105,17 @@ export function SlotPicker({ court, selectedDate, selectedSlot, onDateChange, on
         </>
       )}
 
-      <div className="flex">
+      <div className="flex items-center justify-between">
+        {selectedSlots.length > 0 && (
+          <span className="text-sm text-slate-400">
+            {selectedSlots.length} slot{selectedSlots.length > 1 ? "s" : ""} selected
+          </span>
+        )}
         <button
           type="button"
-          className="inline-flex min-h-[46px] items-center rounded-full bg-gradient-to-br from-brand-accent to-brand-blue px-6 font-bold text-slate-900 transition hover:-translate-y-px hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex min-h-[46px] items-center rounded-full bg-gradient-to-br from-brand-accent to-brand-blue px-6 font-bold text-slate-900 transition hover:-translate-y-px hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
           onClick={onNext}
-          disabled={!selectedSlot}
+          disabled={selectedSlots.length === 0}
         >
           Continue
         </button>

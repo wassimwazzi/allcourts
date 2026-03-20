@@ -74,4 +74,6 @@ a {
 
 /* Used by JS IntersectionObserver in pricing-tiers.tsx */
 .tier-card.visible {
+  opacity: 1;
+  transform: translateY(0);
 }

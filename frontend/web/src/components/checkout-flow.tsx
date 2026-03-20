@@ -24,7 +24,7 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
 
   const [step, setStep] = useState<CheckoutStep>("slot");
   const [selectedDate, setSelectedDate] = useState(firstDate);
-  const [selectedSlot, setSelectedSlot] = useState<CheckoutSlot | null>(null);
+  const [selectedSlots, setSelectedSlots] = useState<CheckoutSlot[]>([]);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
@@ -40,31 +40,36 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
   const currentStepIndex = STEPS.findIndex((s) => s.id === step);
 
   async function handleSubmit() {
-    if (!selectedSlot) return;
+    if (selectedSlots.length === 0) return;
     setLoading(true);
     setError(null);
 
-    const result = await submitBooking({
-      courtId: court.courtId,
-      bookingDate: selectedSlot.date,
-      startTime: selectedSlot.startTime,
-      endTime: selectedSlot.endTime,
-      subtotalCents: selectedSlot.priceCents,
-      currency: selectedSlot.currency,
-      bookedForName: name,
-      bookedForPhone: phone,
-      notes,
-      idempotencyKey,
-    });
+    let firstBookingId = "";
+    for (let i = 0; i < selectedSlots.length; i++) {
+      const slot = selectedSlots[i];
+      const result = await submitBooking({
+        courtId: court.courtId,
+        bookingDate: slot.date,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        subtotalCents: slot.priceCents,
+        currency: slot.currency,
+        bookedForName: name,
+        bookedForPhone: phone,
+        notes,
+        idempotencyKey: `${idempotencyKey}-${i}`,
+      });
 
-    setLoading(false);
-
-    if (!result.ok) {
-      setError(result.error);
-      return;
+      if (!result.ok) {
+        setError(result.error);
+        setLoading(false);
+        return;
+      }
+      if (i === 0) firstBookingId = result.bookingId;
     }
 
-    setBookingId(result.bookingId);
+    setLoading(false);
+    setBookingId(firstBookingId);
     setStep("confirmed");
   }
 
@@ -114,9 +119,16 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
           <SlotPicker
             court={court}
             selectedDate={selectedDate}
-            selectedSlot={selectedSlot}
-            onDateChange={(d) => { setSelectedDate(d); setSelectedSlot(null); }}
-            onSlotSelect={setSelectedSlot}
+            selectedSlots={selectedSlots}
+            onDateChange={(d) => { setSelectedDate(d); setSelectedSlots([]); }}
+            onSlotToggle={(slot) => {
+              setSelectedSlots((prev) => {
+                const exists = prev.some((s) => s.startTime === slot.startTime && s.date === slot.date);
+                return exists
+                  ? prev.filter((s) => !(s.startTime === slot.startTime && s.date === slot.date))
+                  : [...prev, slot];
+              });
+            }}
             onNext={() => setStep("details")}
           />
         )}
@@ -132,10 +144,10 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
             onNext={() => setStep("payment")}
           />
         )}
-        {step === "payment" && selectedSlot && (
+        {step === "payment" && selectedSlots.length > 0 && (
           <PaymentForm
             court={court}
-            slot={selectedSlot}
+            slots={selectedSlots}
             name={name}
             cardNumber={cardNumber}
             expiry={expiry}
@@ -149,10 +161,10 @@ export function CheckoutFlow({ court }: CheckoutFlowProps) {
             error={error}
           />
         )}
-        {step === "confirmed" && selectedSlot && (
+        {step === "confirmed" && selectedSlots.length > 0 && (
           <BookingConfirmed
             court={court}
-            slot={selectedSlot}
+            slots={selectedSlots}
             bookingId={bookingId}
             name={name}
           />
