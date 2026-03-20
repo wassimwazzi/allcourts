@@ -15,6 +15,7 @@ insert into public.facilities (
   booking_horizon_days,
   cancellation_window_hours,
   status,
+  rating,
   settings
 ) values
   (
@@ -34,6 +35,7 @@ insert into public.facilities (
     30,
     24,
     'active',
+    4.8,
     jsonb_build_object(
       'stripe_connected_account_ready', false,
       'supports_drop_in_play', true,
@@ -57,6 +59,7 @@ insert into public.facilities (
     21,
     12,
     'active',
+    4.6,
     jsonb_build_object(
       'stripe_connected_account_ready', false,
       'supports_drop_in_play', true,
@@ -67,7 +70,7 @@ insert into public.facilities (
     '6e9b8a20-7ef6-4f2e-9d9b-78a7c0f20103',
     'Eastside Courts & Pickle',
     'eastside-courts-and-pickle',
-    'Neighborhood multi-sport site with tennis and pickleball inventory for after-work play.',
+    'Neighborhood multi-sport site with tennis and pickleball courts for after-work play.',
     'Bellevue',
     'WA',
     'US',
@@ -80,6 +83,55 @@ insert into public.facilities (
     35,
     18,
     'active',
+    4.5,
+    jsonb_build_object(
+      'stripe_connected_account_ready', false,
+      'supports_drop_in_play', true,
+      'memberships_enabled', false
+    )
+  ),
+  (
+    '6e9b8a20-7ef6-4f2e-9d9b-78a7c0f20104',
+    'UrbanSquash Seattle',
+    'urban-squash-seattle',
+    'Modern squash facility in the heart of Seattle with glass-back courts and pro coaching.',
+    'Seattle',
+    'WA',
+    'US',
+    'America/Los_Angeles',
+    '2200 Westlake Ave N',
+    '98109',
+    47.637596,
+    -122.341614,
+    60,
+    28,
+    24,
+    'active',
+    4.7,
+    jsonb_build_object(
+      'stripe_connected_account_ready', false,
+      'supports_drop_in_play', true,
+      'memberships_enabled', false
+    )
+  ),
+  (
+    '6e9b8a20-7ef6-4f2e-9d9b-78a7c0f20105',
+    'Pacific Badminton Academy',
+    'pacific-badminton-academy',
+    'Premier badminton hall with 6 competition-grade courts, shuttle shop, and junior programs.',
+    'Portland',
+    'OR',
+    'US',
+    'America/Los_Angeles',
+    '311 N Tomahawk Island Dr',
+    '97217',
+    45.600142,
+    -122.757895,
+    30,
+    30,
+    12,
+    'active',
+    4.4,
     jsonb_build_object(
       'stripe_connected_account_ready', false,
       'supports_drop_in_play', true,
@@ -103,6 +155,7 @@ set
   booking_horizon_days = excluded.booking_horizon_days,
   cancellation_window_hours = excluded.cancellation_window_hours,
   status = excluded.status,
+  rating = excluded.rating,
   settings = excluded.settings;
 
 insert into public.courts (
@@ -121,6 +174,7 @@ insert into public.courts (
   image_url,
   metadata
 ) values
+  -- Mission Bay Racquet Club: tennis + pickleball
   (
     '1f2fd263-0871-48fb-b939-84f2b05b3101',
     '6e9b8a20-7ef6-4f2e-9d9b-78a7c0f20101',
@@ -166,9 +220,10 @@ insert into public.courts (
     'active',
     2600,
     'usd',
-    'https://images.unsplash.com/photo-1526676037777-05a232554f77?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1593766788306-28561086694e?auto=format&fit=crop&w=1600&q=80',
     jsonb_build_object('lights', true, 'portable_net', false)
   ),
+  -- South Bay Padel Center: padel
   (
     '1f2fd263-0871-48fb-b939-84f2b05b3201',
     '6e9b8a20-7ef6-4f2e-9d9b-78a7c0f20102',
@@ -214,9 +269,10 @@ insert into public.courts (
     'active',
     4600,
     'usd',
-    'https://images.unsplash.com/photo-1622279457486-28f2dc7c56af?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=1600&q=80',
     jsonb_build_object('cage', true, 'warmup_zone', true)
   ),
+  -- Eastside Courts & Pickle: tennis + pickleball
   (
     '1f2fd263-0871-48fb-b939-84f2b05b3301',
     '6e9b8a20-7ef6-4f2e-9d9b-78a7c0f20103',
@@ -246,8 +302,106 @@ insert into public.courts (
     'active',
     2400,
     'usd',
-    'https://images.unsplash.com/photo-1542144582-1ba00456b5e3?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1619785292559-a15caa28bde6?auto=format&fit=crop&w=1600&q=80',
     jsonb_build_object('lights', true, 'beginner_friendly', true)
+  ),
+  -- UrbanSquash Seattle: squash
+  (
+    '1f2fd263-0871-48fb-b939-84f2b05b3401',
+    '6e9b8a20-7ef6-4f2e-9d9b-78a7c0f20104',
+    'Squash Court A',
+    'squash',
+    'hardwood',
+    true,
+    2,
+    1,
+    15,
+    'active',
+    3800,
+    'usd',
+    'https://images.unsplash.com/photo-1547347298-4074fc3086f0?auto=format&fit=crop&w=1600&q=80',
+    jsonb_build_object('glass_back', true, 'video_replay', true)
+  ),
+  (
+    '1f2fd263-0871-48fb-b939-84f2b05b3402',
+    '6e9b8a20-7ef6-4f2e-9d9b-78a7c0f20104',
+    'Squash Court B',
+    'squash',
+    'hardwood',
+    true,
+    2,
+    2,
+    15,
+    'active',
+    3800,
+    'usd',
+    'https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?auto=format&fit=crop&w=1600&q=80',
+    jsonb_build_object('glass_back', true, 'video_replay', false)
+  ),
+  (
+    '1f2fd263-0871-48fb-b939-84f2b05b3403',
+    '6e9b8a20-7ef6-4f2e-9d9b-78a7c0f20104',
+    'Squash Court C',
+    'squash',
+    'hardwood',
+    true,
+    2,
+    3,
+    10,
+    'active',
+    3400,
+    'usd',
+    'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?auto=format&fit=crop&w=1600&q=80',
+    jsonb_build_object('glass_back', false, 'coaching_area', true)
+  ),
+  -- Pacific Badminton Academy: badminton
+  (
+    '1f2fd263-0871-48fb-b939-84f2b05b3501',
+    '6e9b8a20-7ef6-4f2e-9d9b-78a7c0f20105',
+    'Badminton Court 1',
+    'badminton',
+    'hardwood',
+    true,
+    4,
+    1,
+    0,
+    'active',
+    2800,
+    'usd',
+    'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=1600&q=80',
+    jsonb_build_object('competition_grade', true, 'shuttle_rental', true)
+  ),
+  (
+    '1f2fd263-0871-48fb-b939-84f2b05b3502',
+    '6e9b8a20-7ef6-4f2e-9d9b-78a7c0f20105',
+    'Badminton Court 2',
+    'badminton',
+    'hardwood',
+    true,
+    4,
+    2,
+    0,
+    'active',
+    2800,
+    'usd',
+    'https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?auto=format&fit=crop&w=1600&q=80',
+    jsonb_build_object('competition_grade', true, 'shuttle_rental', true)
+  ),
+  (
+    '1f2fd263-0871-48fb-b939-84f2b05b3503',
+    '6e9b8a20-7ef6-4f2e-9d9b-78a7c0f20105',
+    'Badminton Court 3',
+    'badminton',
+    'synthetic',
+    true,
+    4,
+    3,
+    0,
+    'active',
+    2400,
+    'usd',
+    'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1600&q=80',
+    jsonb_build_object('competition_grade', false, 'beginner_friendly', true)
   )
 on conflict (id) do update
 set
@@ -280,24 +434,45 @@ insert into public.court_availability (
   is_bookable,
   metadata
 ) values
+  -- Mission Bay: Tennis Stadium Court
   ('8a6b59bb-f750-4d8e-9917-c0d6b2e43101', '1f2fd263-0871-48fb-b939-84f2b05b3101', 'recurring', 1, '06:00', '16:00', 60, 60, 120, 4200, 'usd', true, jsonb_build_object('rate_tier', 'off_peak')),
   ('8a6b59bb-f750-4d8e-9917-c0d6b2e43102', '1f2fd263-0871-48fb-b939-84f2b05b3101', 'recurring', 1, '16:00', '22:00', 60, 60, 120, 5600, 'usd', true, jsonb_build_object('rate_tier', 'prime_time')),
+  -- Mission Bay: Tennis Court 2
   ('8a6b59bb-f750-4d8e-9917-c0d6b2e43103', '1f2fd263-0871-48fb-b939-84f2b05b3102', 'recurring', 2, '06:00', '17:00', 60, 60, 120, 3800, 'usd', true, jsonb_build_object('rate_tier', 'weekday')),
   ('8a6b59bb-f750-4d8e-9917-c0d6b2e43104', '1f2fd263-0871-48fb-b939-84f2b05b3102', 'recurring', 2, '17:00', '22:00', 60, 60, 120, 4600, 'usd', true, jsonb_build_object('rate_tier', 'evening')),
+  -- Mission Bay: Pickleball Terrace A
   ('8a6b59bb-f750-4d8e-9917-c0d6b2e43105', '1f2fd263-0871-48fb-b939-84f2b05b3103', 'recurring', 6, '08:00', '21:00', 60, 60, 120, 2600, 'usd', true, jsonb_build_object('rate_tier', 'weekend')),
   ('8a6b59bb-f750-4d8e-9917-c0d6b2e43106', '1f2fd263-0871-48fb-b939-84f2b05b3103', 'blackout', 3, '12:00', '14:00', 60, null, null, 0, 'usd', false, jsonb_build_object('reason', 'school_clinic')),
-
+  -- South Bay: Padel Court Azul
   ('8a6b59bb-f750-4d8e-9917-c0d6b2e43201', '1f2fd263-0871-48fb-b939-84f2b05b3201', 'recurring', 1, '07:00', '17:00', 90, 90, 180, 4800, 'usd', true, jsonb_build_object('rate_tier', 'daytime')),
   ('8a6b59bb-f750-4d8e-9917-c0d6b2e43202', '1f2fd263-0871-48fb-b939-84f2b05b3201', 'recurring', 1, '17:00', '23:00', 90, 90, 180, 6200, 'usd', true, jsonb_build_object('rate_tier', 'night')),
+  -- South Bay: Padel Court Verde
   ('8a6b59bb-f750-4d8e-9917-c0d6b2e43203', '1f2fd263-0871-48fb-b939-84f2b05b3202', 'recurring', 4, '07:00', '16:00', 90, 90, 180, 4500, 'usd', true, jsonb_build_object('rate_tier', 'daytime')),
   ('8a6b59bb-f750-4d8e-9917-c0d6b2e43204', '1f2fd263-0871-48fb-b939-84f2b05b3202', 'recurring', 4, '16:00', '23:00', 90, 90, 180, 5800, 'usd', true, jsonb_build_object('rate_tier', 'prime_time')),
+  -- South Bay: Padel Court Naranja
   ('8a6b59bb-f750-4d8e-9917-c0d6b2e43205', '1f2fd263-0871-48fb-b939-84f2b05b3203', 'recurring', 0, '08:00', '22:00', 90, 90, 180, 4600, 'usd', true, jsonb_build_object('rate_tier', 'weekend')),
   ('8a6b59bb-f750-4d8e-9917-c0d6b2e43206', '1f2fd263-0871-48fb-b939-84f2b05b3203', 'blackout', 2, '13:00', '15:00', 60, null, null, 0, 'usd', false, jsonb_build_object('reason', 'net_replacement')),
-
+  -- Eastside: Tennis Court North
   ('8a6b59bb-f750-4d8e-9917-c0d6b2e43301', '1f2fd263-0871-48fb-b939-84f2b05b3301', 'recurring', 5, '06:30', '16:30', 60, 60, 120, 3200, 'usd', true, jsonb_build_object('rate_tier', 'weekday')),
   ('8a6b59bb-f750-4d8e-9917-c0d6b2e43302', '1f2fd263-0871-48fb-b939-84f2b05b3301', 'recurring', 5, '16:30', '21:30', 60, 60, 120, 3900, 'usd', true, jsonb_build_object('rate_tier', 'after_work')),
+  -- Eastside: Pickleball Court East
   ('8a6b59bb-f750-4d8e-9917-c0d6b2e43303', '1f2fd263-0871-48fb-b939-84f2b05b3302', 'recurring', 6, '07:00', '20:00', 60, 60, 120, 2400, 'usd', true, jsonb_build_object('rate_tier', 'all_day')),
-  ('8a6b59bb-f750-4d8e-9917-c0d6b2e43304', '1f2fd263-0871-48fb-b939-84f2b05b3302', 'blackout', 1, '10:00', '12:00', 60, null, null, 0, 'usd', false, jsonb_build_object('reason', 'junior_program'))
+  ('8a6b59bb-f750-4d8e-9917-c0d6b2e43304', '1f2fd263-0871-48fb-b939-84f2b05b3302', 'blackout', 1, '10:00', '12:00', 60, null, null, 0, 'usd', false, jsonb_build_object('reason', 'junior_program')),
+  -- UrbanSquash: Squash Court A
+  ('8a6b59bb-f750-4d8e-9917-c0d6b2e43401', '1f2fd263-0871-48fb-b939-84f2b05b3401', 'recurring', 1, '06:00', '14:00', 45, 45, 90, 3400, 'usd', true, jsonb_build_object('rate_tier', 'morning')),
+  ('8a6b59bb-f750-4d8e-9917-c0d6b2e43402', '1f2fd263-0871-48fb-b939-84f2b05b3401', 'recurring', 1, '14:00', '22:00', 45, 45, 90, 4200, 'usd', true, jsonb_build_object('rate_tier', 'prime_time')),
+  -- UrbanSquash: Squash Court B
+  ('8a6b59bb-f750-4d8e-9917-c0d6b2e43403', '1f2fd263-0871-48fb-b939-84f2b05b3402', 'recurring', 3, '07:00', '22:00', 45, 45, 90, 3800, 'usd', true, jsonb_build_object('rate_tier', 'all_day')),
+  -- UrbanSquash: Squash Court C
+  ('8a6b59bb-f750-4d8e-9917-c0d6b2e43404', '1f2fd263-0871-48fb-b939-84f2b05b3403', 'recurring', 5, '06:00', '20:00', 45, 45, 90, 3200, 'usd', true, jsonb_build_object('rate_tier', 'weekday')),
+  ('8a6b59bb-f750-4d8e-9917-c0d6b2e43405', '1f2fd263-0871-48fb-b939-84f2b05b3403', 'recurring', 6, '08:00', '20:00', 45, 45, 90, 3600, 'usd', true, jsonb_build_object('rate_tier', 'weekend')),
+  -- Pacific Badminton: Court 1
+  ('8a6b59bb-f750-4d8e-9917-c0d6b2e43501', '1f2fd263-0871-48fb-b939-84f2b05b3501', 'recurring', 1, '08:00', '22:00', 60, 60, 120, 2800, 'usd', true, jsonb_build_object('rate_tier', 'standard')),
+  -- Pacific Badminton: Court 2
+  ('8a6b59bb-f750-4d8e-9917-c0d6b2e43502', '1f2fd263-0871-48fb-b939-84f2b05b3502', 'recurring', 2, '08:00', '22:00', 60, 60, 120, 2800, 'usd', true, jsonb_build_object('rate_tier', 'standard')),
+  -- Pacific Badminton: Court 3
+  ('8a6b59bb-f750-4d8e-9917-c0d6b2e43503', '1f2fd263-0871-48fb-b939-84f2b05b3503', 'recurring', 6, '07:00', '21:00', 60, 60, 120, 2400, 'usd', true, jsonb_build_object('rate_tier', 'weekend')),
+  ('8a6b59bb-f750-4d8e-9917-c0d6b2e43504', '1f2fd263-0871-48fb-b939-84f2b05b3503', 'recurring', 0, '07:00', '21:00', 60, 60, 120, 2400, 'usd', true, jsonb_build_object('rate_tier', 'weekend'))
 on conflict (id) do update
 set
   court_id = excluded.court_id,
