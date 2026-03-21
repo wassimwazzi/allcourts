@@ -1,3 +1,4 @@
+import { createPublicSupabaseClient, getSupabaseFunctionUrl } from "@allcourts/sdk";
 import { getPublicSupabaseEnv } from "@/lib/env";
 import { getAuthenticatedSession } from "@/lib/supabase-client";
 import type { CheckoutCourt, CheckoutSlot } from "@allcourts/types";
@@ -92,73 +93,71 @@ export function filterSlotsByBlockedRanges(slots: CheckoutSlot[], blockedRanges:
   );
 }
 
-async function fetchRest<T>(path: string): Promise<T> {
-  const config = getPublicSupabaseEnv();
-  if (!config) throw new Error("Supabase not configured.");
-
-  const res = await fetch(`${config.supabaseUrl}/rest/v1/${path}`, {
-    headers: {
-      apikey: config.supabaseAnonKey,
-      authorization: `Bearer ${config.supabaseAnonKey}`,
+function createCheckoutSupabaseClient() {
+  return createPublicSupabaseClient(process.env, {
+    global: {
+      fetch: (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) =>
+        fetch(input, { ...init, cache: "no-store" }),
     },
-    cache: "no-store",
   });
-
-  if (!res.ok) throw new Error(`REST error ${res.status}`);
-  return res.json() as Promise<T>;
 }
 
-async function fetchRpc<T>(functionName: string, payload: Record<string, unknown>): Promise<T> {
-  const config = getPublicSupabaseEnv();
-  if (!config) throw new Error("Supabase not configured.");
-
-  const res = await fetch(`${config.supabaseUrl}/rest/v1/rpc/${functionName}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      apikey: config.supabaseAnonKey,
-      authorization: `Bearer ${config.supabaseAnonKey}`,
-    },
-    body: JSON.stringify(payload),
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    const responseBody = await res.text().catch(() => "");
-    throw new Error(`RPC error ${res.status} for ${functionName}: ${responseBody || "<empty body>"}`);
+function unwrapData<T>(
+  label: string,
+  result: { data: T | null; error: { message: string } | null },
+): T {
+  if (result.error) {
+    throw new Error(`${label}: ${result.error.message}`);
   }
 
-  return res.json() as Promise<T>;
+  return result.data as T;
 }
 
 export async function fetchCourtWithAvailability(courtId: string): Promise<CheckoutCourt | null> {
   try {
+    if (!getPublicSupabaseEnv()) {
+      throw new Error("Supabase not configured.");
+    }
+
+    const supabase = createCheckoutSupabaseClient();
     const today = new Date();
     const windowStart = toDateOnly(today);
     const windowEndDate = new Date(today);
     windowEndDate.setDate(today.getDate() + 13);
     const windowEnd = toDateOnly(windowEndDate);
 
-    const [courts, facilities, availability, activeBookings] = await Promise.all([
-      fetchRest<CourtRecord[]>(`courts?id=eq.${courtId}&select=id,facility_id,name,sport_type,currency,metadata`),
-      fetchRest<FacilityRecord[]>(
-        `facilities?select=id,name,city,state_region,address_line1,settings`
-      ),
-      fetchRest<AvailabilityRecord[]>(
-        `court_availability?court_id=eq.${courtId}&is_bookable=is.true&select=court_id,day_of_week,start_time,end_time,slot_minutes,price_cents,currency,availability_type,is_bookable`
-      ),
-      fetchRpc<BookingConflictRecord[]>(
-        "get_court_occupied_slots",
-        {
+    const [courtsResult, facilitiesResult, availabilityResult, activeBookings] = await Promise.all([
+      supabase
+        .from("courts")
+        .select("id,facility_id,name,sport_type,currency,metadata")
+        .eq("id", courtId),
+      supabase
+        .from("facilities")
+        .select("id,name,city,state_region,address_line1,settings"),
+      supabase
+        .from("court_availability")
+        .select("court_id,day_of_week,start_time,end_time,slot_minutes,price_cents,currency,availability_type,is_bookable")
+        .eq("court_id", courtId)
+        .eq("is_bookable", true),
+      supabase
+        .rpc("get_court_occupied_slots", {
           p_court_id: courtId,
           p_start_date: windowStart,
           p_end_date: windowEnd,
-        }
-      ).catch((error) => {
-        console.error("Error fetching occupied slots:", error);
-        return [];
-      }),
+        })
+        .then(({ data, error }) => {
+          if (error) {
+            console.error("Error fetching occupied slots:", error);
+            return [];
+          }
+
+          return (data ?? []) as BookingConflictRecord[];
+        }),
     ]);
+    const courts = unwrapData<CourtRecord[]>("Failed to load court", courtsResult) ?? [];
+    const facilities = unwrapData<FacilityRecord[]>("Failed to load facilities", facilitiesResult) ?? [];
+    const availability =
+      unwrapData<AvailabilityRecord[]>("Failed to load court availability", availabilityResult) ?? [];
 
 
     const court = courts[0];
@@ -277,8 +276,7 @@ export type BookingResult =
   | { ok: false; error: string };
 
 export async function submitBooking(params: BookingSubmitParams): Promise<BookingResult> {
-  const config = getPublicSupabaseEnv();
-  if (!config) {
+  if (!getPublicSupabaseEnv()) {
     return { ok: false, error: "Supabase is not configured on this deployment." };
   }
 
@@ -305,7 +303,7 @@ export async function submitBooking(params: BookingSubmitParams): Promise<Bookin
   };
 
   try {
-    const res = await fetch(`${config.supabaseUrl}/functions/v1/booking-checkout`, {
+    const res = await fetch(getSupabaseFunctionUrl(process.env, "booking-checkout"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

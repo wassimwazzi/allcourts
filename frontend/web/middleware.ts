@@ -1,4 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
+import { createSupabaseServerClient } from "@allcourts/sdk";
 import { NextResponse, type NextRequest } from "next/server";
 
 const PROTECTED_PATHS = ["/checkout", "/bookings", "/profile"];
@@ -6,26 +6,18 @@ const PROTECTED_PATHS = ["/checkout", "/bookings", "/profile"];
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
+  const supabase = createSupabaseServerClient(process.env, {
+    getAll() {
+      return request.cookies.getAll();
+    },
+    setAll(cookiesToSet) {
+      cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+      supabaseResponse = NextResponse.next({ request });
+      cookiesToSet.forEach(({ name, value, options }) =>
+        supabaseResponse.cookies.set(name, value, options)
+      );
+    },
+  });
 
   // Refresh session if expired — important to call getUser() not getSession()
   const {
