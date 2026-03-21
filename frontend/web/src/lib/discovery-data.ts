@@ -1,3 +1,4 @@
+import { createPublicSupabaseClient } from "@allcourts/sdk";
 import { getPublicSupabaseEnv } from "@/lib/env";
 
 type FacilityRecord = {
@@ -83,26 +84,24 @@ const sportImages: Record<string, string> = {
 const defaultImage =
   "https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=900&q=80";
 
-async function fetchSupabaseRest<T>(path: string): Promise<T> {
-  const config = getPublicSupabaseEnv();
-
-  if (!config) {
-    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY.");
-  }
-
-  const response = await fetch(`${config.supabaseUrl}/rest/v1/${path}`, {
-    headers: {
-      apikey: config.supabaseAnonKey,
-      authorization: `Bearer ${config.supabaseAnonKey}`
+function createDiscoverySupabaseClient() {
+  return createPublicSupabaseClient(process.env, {
+    global: {
+      fetch: (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) =>
+        fetch(input, { ...init, next: { revalidate: 60 } }),
     },
-    next: { revalidate: 60 }
   });
+}
 
-  if (!response.ok) {
-    throw new Error(`Supabase REST request failed (${response.status})`);
+function unwrapData<T>(
+  label: string,
+  result: { data: T | null; error: { message: string } | null },
+): T {
+  if (result.error) {
+    throw new Error(`${label}: ${result.error.message}`);
   }
 
-  return (await response.json()) as T;
+  return result.data as T;
 }
 
 function coerceCoordinate(value: number | string | null): number | null {
@@ -234,17 +233,27 @@ export async function getDiscoverData(): Promise<DiscoverDataResult> {
   }
 
   try {
-    const [facilities, courts, availability] = await Promise.all([
-      fetchSupabaseRest<FacilityRecord[]>(
-        "facilities?select=id,name,description,city,state_region,address_line1,latitude,longitude,rating,settings&status=eq.active&order=name"
-      ),
-      fetchSupabaseRest<CourtRecord[]>(
-        "courts?select=id,facility_id,name,sport_type,surface_type,indoor,capacity,base_price_cents,currency,image_url,metadata&status=eq.active&order=display_order"
-      ),
-      fetchSupabaseRest<AvailabilityRecord[]>(
-        "court_availability?select=court_id,day_of_week,start_time,end_time,slot_minutes,price_cents,currency,availability_type,is_bookable&is_bookable=is.true"
-      )
+    const supabase = createDiscoverySupabaseClient();
+    const [facilitiesResult, courtsResult, availabilityResult] = await Promise.all([
+      supabase
+        .from("facilities")
+        .select("id,name,description,city,state_region,address_line1,latitude,longitude,rating,settings")
+        .eq("status", "active")
+        .order("name"),
+      supabase
+        .from("courts")
+        .select("id,facility_id,name,sport_type,surface_type,indoor,capacity,base_price_cents,currency,image_url,metadata")
+        .eq("status", "active")
+        .order("display_order"),
+      supabase
+        .from("court_availability")
+        .select("court_id,day_of_week,start_time,end_time,slot_minutes,price_cents,currency,availability_type,is_bookable")
+        .eq("is_bookable", true),
     ]);
+    const facilities = unwrapData<FacilityRecord[]>("Failed to load facilities", facilitiesResult) ?? [];
+    const courts = unwrapData<CourtRecord[]>("Failed to load courts", courtsResult) ?? [];
+    const availability =
+      unwrapData<AvailabilityRecord[]>("Failed to load court availability", availabilityResult) ?? [];
 
     const facilitiesById = new Map(facilities.map((facility) => [facility.id, facility]));
     const availabilityByCourt = new Map<string, AvailabilityRecord[]>();

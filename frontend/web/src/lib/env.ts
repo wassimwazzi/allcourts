@@ -1,9 +1,9 @@
-const fallbackBaseUrl = "https://www.allcourts.com";
+import {
+  getOptionalPublicSupabaseEnv,
+  type PublicSupabaseEnv,
+} from "@allcourts/sdk";
 
-type PublicSupabaseEnv = {
-  supabaseUrl: string;
-  supabaseAnonKey: string;
-};
+const fallbackBaseUrl = "https://www.allcourts.com";
 
 export function getBaseUrl(): string {
   return process.env.NEXT_PUBLIC_APP_URL ?? fallbackBaseUrl;
@@ -18,15 +18,5 @@ export function formatCurrency(amount: number): string {
 }
 
 export function getPublicSupabaseEnv(): PublicSupabaseEnv | null {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return null;
-  }
-
-  return {
-    supabaseUrl,
-    supabaseAnonKey
-  };
+  return getOptionalPublicSupabaseEnv(process.env);
 }

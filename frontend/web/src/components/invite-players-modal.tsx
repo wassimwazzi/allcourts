@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { getSupabaseBrowserClient } from "@/lib/supabase-client";
+import { getSupabaseFunctionUrl } from "@allcourts/sdk";
+import { getAuthenticatedSession } from "@/lib/supabase-client";
 
 type Props = {
   bookingId: string;
@@ -31,27 +32,20 @@ export function InvitePlayersModal({ bookingId, onClose, onInvited }: Props) {
 
     setLoading(true);
 
-    const client = getSupabaseBrowserClient();
-    if (!client) {
-      setError("Service unavailable.");
-      setLoading(false);
-      return;
-    }
-
-    const { data: { session } } = await client.auth.getSession();
-    if (!session?.access_token) {
+    const accessToken = await getAuthenticatedSession();
+    if (!accessToken) {
       setError("You must be signed in to invite players.");
       setLoading(false);
       return;
     }
 
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/invite-participant`,
+      getSupabaseFunctionUrl(process.env, "invite-participant"),
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({ bookingId, inviteeEmail: trimmed, role }),
       }
