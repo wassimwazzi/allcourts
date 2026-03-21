@@ -32,6 +32,18 @@ type AvailabilityRecord = {
   is_bookable: boolean;
 };
 
+type BookingConflictRecord = {
+  booking_date: string;
+  start_time: string;
+  end_time: string;
+};
+
+type BlockedRange = {
+  startTime: string;
+  endTime: string;
+};
+
+
 function formatSlotLabel(startTime: string, endTime: string): string {
   const fmt = (t: string) => {
     const [h, m] = t.split(":").map(Number);
@@ -50,6 +62,36 @@ function addMinutes(time: string, minutes: number): string {
   return `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
 }
 
+function toDateOnly(d: Date): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function normalizeTimeToMinute(time: string): string {
+  return time.slice(0, 5);
+}
+
+function slotOverlapsBlockedRange(slotStart: string, slotEnd: string, blockedRange: BlockedRange): boolean {
+  const normalizedSlotStart = normalizeTimeToMinute(slotStart);
+  const normalizedSlotEnd = normalizeTimeToMinute(slotEnd);
+  const normalizedBlockedStart = normalizeTimeToMinute(blockedRange.startTime);
+  const normalizedBlockedEnd = normalizeTimeToMinute(blockedRange.endTime);
+
+  return normalizedSlotStart < normalizedBlockedEnd && normalizedSlotEnd > normalizedBlockedStart;
+}
+
+export function filterSlotsByBlockedRanges(slots: CheckoutSlot[], blockedRanges: BlockedRange[]): CheckoutSlot[] {
+  if (blockedRanges.length === 0) {
+    return slots;
+  }
+
+  return slots.filter(
+    (slot) => !blockedRanges.some((blocked) => slotOverlapsBlockedRange(slot.startTime, slot.endTime, blocked))
+  );
+}
+
 async function fetchRest<T>(path: string): Promise<T> {
   const config = getPublicSupabaseEnv();
   if (!config) throw new Error("Supabase not configured.");
@@ -66,9 +108,38 @@ async function fetchRest<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+async function fetchRpc<T>(functionName: string, payload: Record<string, unknown>): Promise<T> {
+  const config = getPublicSupabaseEnv();
+  if (!config) throw new Error("Supabase not configured.");
+
+  const res = await fetch(`${config.supabaseUrl}/rest/v1/rpc/${functionName}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: config.supabaseAnonKey,
+      authorization: `Bearer ${config.supabaseAnonKey}`,
+    },
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const responseBody = await res.text().catch(() => "");
+    throw new Error(`RPC error ${res.status} for ${functionName}: ${responseBody || "<empty body>"}`);
+  }
+
+  return res.json() as Promise<T>;
+}
+
 export async function fetchCourtWithAvailability(courtId: string): Promise<CheckoutCourt | null> {
   try {
-    const [courts, facilities, availability] = await Promise.all([
+    const today = new Date();
+    const windowStart = toDateOnly(today);
+    const windowEndDate = new Date(today);
+    windowEndDate.setDate(today.getDate() + 13);
+    const windowEnd = toDateOnly(windowEndDate);
+
+    const [courts, facilities, availability, activeBookings] = await Promise.all([
       fetchRest<CourtRecord[]>(`courts?id=eq.${courtId}&select=id,facility_id,name,sport_type,currency,metadata`),
       fetchRest<FacilityRecord[]>(
         `facilities?select=id,name,city,state_region,address_line1,settings`
@@ -76,7 +147,19 @@ export async function fetchCourtWithAvailability(courtId: string): Promise<Check
       fetchRest<AvailabilityRecord[]>(
         `court_availability?court_id=eq.${courtId}&is_bookable=is.true&select=court_id,day_of_week,start_time,end_time,slot_minutes,price_cents,currency,availability_type,is_bookable`
       ),
+      fetchRpc<BookingConflictRecord[]>(
+        "get_court_occupied_slots",
+        {
+          p_court_id: courtId,
+          p_start_date: windowStart,
+          p_end_date: windowEnd,
+        }
+      ).catch((error) => {
+        console.error("Error fetching occupied slots:", error);
+        return [];
+      }),
     ]);
+
 
     const court = courts[0];
     if (!court) return null;
@@ -88,25 +171,45 @@ export async function fetchCourtWithAvailability(courtId: string): Promise<Check
       (a) => a.is_bookable && a.availability_type !== "blackout"
     );
 
+
+    const blockedRangesByDate = activeBookings.reduce<Record<string, BlockedRange[]>>(
+      (acc, booking) => {
+        const date = booking.booking_date;
+        if (!acc[date]) {
+          acc[date] = [];
+        }
+        acc[date].push({
+          startTime: normalizeTimeToMinute(booking.start_time),
+          endTime: normalizeTimeToMinute(booking.end_time),
+        });
+        return acc;
+      },
+      {}
+    );
+
     const availabilityByDay: Record<string, CheckoutSlot[]> = {};
 
     // Generate slots for the next 14 days from availability rules
-    const today = new Date();
     for (let i = 0; i < 14; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() + i);
       const dow = d.getDay();
-      const dateStr = d.toISOString().split("T")[0];
+      const dateStr = toDateOnly(d);
 
       const dayRules = bookableSlots.filter((a) => a.day_of_week === dow);
-      const slots: CheckoutSlot[] = [];
+      const generatedSlots: CheckoutSlot[] = [];
+      const blockedRanges = blockedRangesByDate[dateStr] ?? [];
 
       for (const rule of dayRules) {
-        let current = rule.start_time;
-        while (current < rule.end_time) {
+        const ruleStart = normalizeTimeToMinute(rule.start_time);
+        const ruleEnd = normalizeTimeToMinute(rule.end_time);
+        let current = ruleStart;
+
+        while (current < ruleEnd) {
           const next = addMinutes(current, rule.slot_minutes);
-          if (next > rule.end_time) break;
-          slots.push({
+          if (next > ruleEnd) break;
+
+          generatedSlots.push({
             date: dateStr,
             startTime: current,
             endTime: next,
@@ -114,14 +217,19 @@ export async function fetchCourtWithAvailability(courtId: string): Promise<Check
             currency: rule.currency,
             label: formatSlotLabel(current, next),
           });
+
           current = next;
         }
       }
+
+      const slots = filterSlotsByBlockedRanges(generatedSlots, blockedRanges);
+
 
       if (slots.length > 0) {
         availabilityByDay[dateStr] = slots;
       }
     }
+
 
     const sportImages: Record<string, string> = {
       tennis: "https://images.unsplash.com/photo-1542144582-1ba00456b5e3?auto=format&fit=crop&w=900&q=80",
@@ -145,7 +253,8 @@ export async function fetchCourtWithAvailability(courtId: string): Promise<Check
       currency: court.currency,
       availabilityByDay,
     };
-  } catch {
+  } catch (error) {
+    console.error("Error fetching court availability:", error);
     return null;
   }
 }

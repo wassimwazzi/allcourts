@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx --max-warnings=0",
-    "typecheck": "tsc -p tsconfig.json --pretty false"
+    "typecheck": "tsc -p tsconfig.json --pretty false",
+    "test": "tsx --test src/lib/checkout.test.ts"
   },
   "dependencies": {
     "@allcourts/types": "workspace:^",
@@ -31,6 +32,7 @@
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.8",
     "tailwindcss": "^3",
+    "tsx": "^4.21.0",
     "typescript": "5.6.3"
   }
 }
